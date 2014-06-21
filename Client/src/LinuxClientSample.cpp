@@ -100,7 +100,12 @@ SUBSCRIBE_LIST = {
 
 END_OF_SUBSCRIBE_LIST};
 
-
+/*==================================================
+ *      Application setup
+ *=================================================*/
+ void setup(){
+    printf("Client start\n");
+ }
 /*==============    End of Program    ==============*/
 
 #endif  // LINUX

@@ -55,8 +55,8 @@
         300,            //KeepAlive
         true,           //Clean session
         true,           //EndDevice
-        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING!
-        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING!
+        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING "" !
+        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING "" !
     }
  };
 #endif
@@ -64,18 +64,18 @@
 #ifdef NETWORK_UDP
 UDP_APP_CONFIG = {
     { 
-        "225.1.1.1",         // Multicast group IP
+        {225,1,1,1},         // Multicast group IP
         1883,                // Multicast group Port
-        {0,0,0,0,0,0},       // mac address  (for Arduino App)
-        "192.168.11.18"      // Local IP     (for Arduino App)
+        {192,168,11,18},      // Local IP     (for Arduino App)
+        {0x0,0x0,0x0,0x0,0x0,0x0}       // MAC address  (for Arduino App)
     },
     { 
         "Node01",       //ClientId
         300,            //KeepAlive
         true,           //Clean session
         true,           //EndDevice
-        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING!
-        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING!
+        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING "" !
+        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING "" !
     } 
 };
 #endif

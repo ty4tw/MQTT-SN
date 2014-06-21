@@ -107,6 +107,12 @@ SUBSCRIBE_LIST = {
 	{topic1, blinkIndicator, QOS1},
 END_OF_SUBSCRIBE_LIST};
 
+/*==================================================
+ *      Application setup
+ *=================================================*/
+ void setup(){
+    // nop
+ }
 
 #endif
 

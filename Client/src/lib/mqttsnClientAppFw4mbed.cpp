@@ -51,6 +51,7 @@ MqttsnClientApplication* theApplication = new MqttsnClientApplication();
 extern TaskList theTaskList[];
 extern OnPublishList theOnPublishList[];
 extern APP_CONFIG    theAppConfig;
+extern void  setup();
 
 /*========================================
 		main function
@@ -69,6 +70,7 @@ int main(){
 
 	theApplication->addTask();
 	theApplication->initialize(theAppConfig);
+	setup();
 	theApplication->run();
 	return 0;
 }
