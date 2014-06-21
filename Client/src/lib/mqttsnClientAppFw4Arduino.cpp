@@ -337,7 +337,7 @@ int MqttsnClientApplication::disconnect(uint16_t duration){
 uint32_t MqttsnClientApplication::getUnixTime(){
 	return XTimer::getUnixTime();
 }
-
+/*
 #define LEAP_YEAR(Y)  ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
 static const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31};
 
@@ -397,7 +397,7 @@ void MqttsnClientApplication::getDateTime(char* buf) {
 		}
 	}
 }
-
+*/
 
 /*-------------- Indicator --------------*/
 void MqttsnClientApplication::indicatorOn(){

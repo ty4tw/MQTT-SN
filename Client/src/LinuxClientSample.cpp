@@ -53,7 +53,7 @@ XBEE_APP_CONFIG = { { 0, 0, 0 },{ 0, 0, false, false, 0, 0 } };
 #endif
 
 #ifdef NETWORK_UDP
-UDP_APP_CONFIG = { { 0, 0 },    { 0, 0, false, false, 0, 0 } };
+UDP_APP_CONFIG = {{ {0,0,0,0}, 0, {0,0,0,0}, {0,0,0,0,0,0} },{ 0, 0, false, false, 0, 0 } };
 #endif
 /*==================================================
  *             Create Topic

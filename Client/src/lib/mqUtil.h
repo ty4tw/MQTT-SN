@@ -1,5 +1,5 @@
 /*
- * util.h
+ * mqUtil.h
  *
  *                      The BSD License
  *

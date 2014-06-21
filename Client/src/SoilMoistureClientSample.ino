@@ -35,12 +35,15 @@
 
 #include <MQTTSN_Application.h>
 #include <mqttsnClientAppFw4Arduino.h>
-
+#include <SPI.h>
+#include <Ethernet.h>
+#include <EthernetUdp.h>
 /*============================================
  *
  *   MQTT-SN Client Application for Arduino
  *
  *===========================================*/
+ #ifdef NETWORK_XBEE
  XBEE_APP_CONFIG = {
     {
         9600,           //Baudrate
@@ -52,11 +55,30 @@
         300,            //KeepAlive
         true,           //Clean session
         true,           //EndDevice
-        "willTopic",    //WillTopic   or 0   DO NOT USE 0 STRING!
-        "willMessage"   //WillMessage or 0   DO NOT USE 0 STRING!
+        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING!
+        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING!
     }
  };
+#endif
 
+#ifdef NETWORK_UDP
+UDP_APP_CONFIG = {
+    { 
+        "225.1.1.1",         // Multicast group IP
+        1883,                // Multicast group Port
+        {0,0,0,0,0,0},       // mac address  (for Arduino App)
+        "192.168.11.18"      // Local IP     (for Arduino App)
+    },
+    { 
+        "Node01",       //ClientId
+        300,            //KeepAlive
+        true,           //Clean session
+        true,           //EndDevice
+        "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING!
+        "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING!
+    } 
+};
+#endif
 /*------------------------------------------------------
  *             Create Topic
  *------------------------------------------------------*/
@@ -86,15 +108,15 @@ int measure(){
     soilR = 9999;
   }
   char buf[30];
-  GET_DATETIME(buf);
-  sprintf(buf + 17," %4d[Kohom]",soilR);
+  //GET_DATETIME(buf);
+  //sprintf(buf + 17," %4d[Kohom]",soilR);
   return PUBLISH(tpMeasure,buf, 29,1);
 }
 
 
 /*---------------  List of task invoked by Timer ------------*/
 
-TASK_LIST = {  //{ MQString* topic, time duration in second},
+TASK_LIST = {  //{ MQString* topic, executing duration in second},
             {measure, 40},
 END_OF_TASK_LIST};
 

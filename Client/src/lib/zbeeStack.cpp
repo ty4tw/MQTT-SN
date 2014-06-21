@@ -45,7 +45,7 @@
 
 #ifdef ARDUINO
   #include <zbeeStack.h>
-  #include <util.h>
+  #include <mqUtil.h>
 
   #if defined( NW_DEBUG) || defined(MQTTSN_DEBUG)
         #include <SoftwareSerial.h>
@@ -57,12 +57,12 @@
 #ifdef MBED
         #include "mbed.h"
         #include "zbeeStack.h"
-		#include "util.h"
+		#include "mqUtil.h"
 #endif /* MBED */
 
 #ifdef LINUX
         #include "zbeeStack.h"
-		#include "util.h"
+		#include "mqUtil.h"
         #include <stdio.h>
         #include <sys/time.h>
         #include <sys/types.h>

@@ -192,9 +192,13 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 	theAppConfig.netCfg.device = strdup(dev);
 #endif
 #ifdef NETWORK_UDP
-	if(portNo || ipAddr){
+	if(portNo || ipAddr[0]){
 		theAppConfig.netCfg.portNo = portNo;
-		theAppConfig.netCfg.ipAddress = ipAddr;
+		uint32_t ipaddr = inet_addr(ipAddr);
+		theAppConfig.netCfg.ipAddress[0] = (ipaddr & 0xff000000) >> 24;
+		theAppConfig.netCfg.ipAddress[1] = (ipaddr & 0x00ff0000) >> 16;
+		theAppConfig.netCfg.ipAddress[2] = (ipaddr & 0x0000ff00) >> 8;
+		theAppConfig.netCfg.ipAddress[3] = (ipaddr & 0x000000ff);
 	}else{
 		printf("argument error\n");
 		exit(1);

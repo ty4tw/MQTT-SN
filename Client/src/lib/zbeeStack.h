@@ -40,7 +40,7 @@
 	#include <MQTTSN_Application.h>
 #else
 	#include "MQTTSN_Application.h"
-	#include "util.h"
+	#include "mqUtil.h"
 	#include "Network.h"
 #endif
 
@@ -52,12 +52,12 @@
     #if ARDUINO >= 100
         #include "Arduino.h"
         #include <inttypes.h>
-		#include <util.h>
+		#include <mqUtil.h>
     #else
         #if ARDUINO < 100
             #include "WProgram.h"
             #include <inttypes.h>
-			#include <util.h>
+			#include <mqUtil.h>
         #endif
     #endif
 

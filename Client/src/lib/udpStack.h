@@ -38,25 +38,27 @@
 
 #ifdef ARDUINO
 	#include <MQTTSN_Application.h>
+	#include <mqUtil.h>
+	#include <Network.h>
 #else
 	#include "MQTTSN_Application.h"
-	#include "util.h"
+	#include "mqUtil.h"
 	#include "Network.h"
 #endif
 
 #ifdef NETWORK_UDP
 
-#if defined(ARDUINO)
-	#include <Network.h>
+#ifdef ARDUINO
+	#include <SPI.h>
+	#include <Ethernet.h>
+	#include <EthernetUdp.h>
     #if ARDUINO >= 100
         #include "Arduino.h"
         #include <inttypes.h>
-		#include <util.h>
     #else
         #if ARDUINO < 100
             #include "WProgram.h"
             #include <inttypes.h>
-			#include <util.h>
         #endif
     #endif
 #endif /* ARDUINO */
@@ -78,6 +80,8 @@
 	#include <arpa/inet.h>
 #endif
 
+#define STAT_UNICAST   1
+#define STAT_MULTICAST 2
 
 #define SOCKET_MAXHOSTNAME  200
 #define SOCKET_MAXCONNECTIONS  5
@@ -163,10 +167,23 @@ private:
 	void close();
 	int recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipaddress, uint16_t* port );
 
+#ifdef LINUX
 	int _sockfdUnicast;
 	int _sockfd;
 	uint16_t _portNo;
-	uint32_t _ipAddr;
+	uint32_t _gIpAddr;
+#endif
+#ifdef ARDUINO
+	EthernetUDP _udpUnicast;
+	EthernetUDP _udpMulticast;
+	IPAddress   _gIpAddr;
+	IPAddress   _cIpAddr;
+	uint16_t    _gPortNo;
+	uint16_t    _cPortNo;
+	uint8_t*    _macAddr;
+	uint8_t     _castStat;
+#endif
+
 	bool   _disconReq;
 
 };

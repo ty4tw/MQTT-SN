@@ -45,7 +45,10 @@
 
 #ifdef ARDUINO
   #include <udpStack.h>
-  #include <util.h>
+  #include <mqUtil.h>
+  #include <SPI.h>
+  #include <Ethernet.h>
+  #include <EthernetUdp.h>
 
   #if defined( NW_DEBUG) || defined(MQTTSN_DEBUG)
         #include <SoftwareSerial.h>
@@ -57,12 +60,12 @@
 #ifdef MBED
         #include "mbed.h"
         #include "udpStack.h"
-		#include "util.h"
+		#include "mqUtil.h"
 #endif /* MBED */
 
 #ifdef LINUX
         #include "udpStack.h"
-		#include "util.h"
+		#include "mqUtil.h"
         #include <stdio.h>
         #include <sys/time.h>
         #include <sys/types.h>
@@ -189,6 +192,89 @@ void Network::setSleep(){
 /**
  *  For Arduino
  */
+UdpPort::UdpPort(){
+
+}
+
+UdpPort::~UdpPort(){
+    close();
+}
+
+void UdpPort::close(){
+
+}
+
+
+bool UdpPort::open(UdpConfig config){
+	_gIpAddr = IPAddress(config.ipAddress);
+	_cIpAddr = IPAddress(config.ipLocal);
+	_gPortNo = config.portNo;
+
+	memcpy(_macAddr, config.macAddr, 6);
+
+	Ethernet.begin(_macAddr, _cIpAddr);
+
+	if(_udpMulticast.beginMulti(_gIpAddr, _gPortNo) == 0){
+		return false;
+	}
+	if(_udpUnicast.begin(_gPortNo) == 0){
+		return false;
+	}
+
+	return true;
+}
+
+int UdpPort::unicast(const uint8_t* buf, uint32_t length, uint32_t ipAddress, uint16_t port  ){
+
+	IPAddress ip = IPAddress(ipAddress);
+	_udpUnicast.beginPacket(ip, port);
+	_udpUnicast.write(buf, length);
+	return _udpUnicast.endPacket();
+}
+
+
+int UdpPort::multicast( const uint8_t* buf, uint32_t length ){
+	_udpMulticast.beginPacket(_gIpAddr, _gPortNo);
+	_udpMulticast.write(buf, length);
+	return _udpMulticast.endPacket();
+}
+
+bool UdpPort::checkRecvBuf(){
+	int ps = _udpUnicast.parsePacket();
+	if(ps > 0){
+		_castStat = STAT_UNICAST;
+		return true;
+	}else if ( (ps = _udpMulticast.parsePacket()) > 0){
+		_castStat = STAT_MULTICAST;
+		return true;
+	}
+	_castStat = 0;
+	return 0;
+}
+
+int UdpPort::recv(uint8_t* buf, uint16_t len, bool flg, uint32_t* ipAddressPtr, uint16_t* portPtr){
+	return recvfrom ( buf, len, 0, ipAddressPtr, portPtr );
+}
+
+int UdpPort::recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipAddressPtr, uint16_t* portPtr ){
+	IPAddress remoteIp;
+	uint8_t packLen;
+	if(_castStat == STAT_UNICAST){
+		packLen = _udpUnicast.read(buf, len);
+		*portPtr = _udpUnicast.remotePort();
+		remoteIp = _udpUnicast.remoteIP();
+	}else if(_castStat == STAT_MULTICAST){
+		packLen = _udpMulticast.read(buf, len);
+		*portPtr = _udpMulticast.remotePort();
+		remoteIp = _udpMulticast.remoteIP();
+	}else{
+		return 0;
+	}
+	memcpy(ipAddressPtr,remoteIp.raw_address(), 4);
+	return packLen;
+}
+
+
 
 
 #endif /* ARDUINO */
@@ -207,7 +293,6 @@ UdpPort::UdpPort(){
     _disconReq = false;
     _sockfdUnicast = -1;
     _sockfd = -1;
-
 }
 
 UdpPort::~UdpPort(){
@@ -226,14 +311,15 @@ void UdpPort::close(){
 	}
 }
 
-bool UdpPort::open(NETWORK_CONFIG config){
+bool UdpPort::open(UdpConfig config){
 	const int reuse = 1;
 	char loopch = 0;
 
 	_portNo = htons(config.portNo);
-	_ipAddr = inet_addr(config.ipAddress);
+	//memcpy((void*)_gIpAddr,config.ipAddress, sizeof(uint32_t));
+	_gIpAddr = getUint32(config.ipAddress);
 
-	if( _portNo == 0 || _ipAddr == 0){
+	if( _portNo == 0 || _gIpAddr == 0){
 		return false;
 	}
 
@@ -286,7 +372,8 @@ bool UdpPort::open(NETWORK_CONFIG config){
 
 	ip_mreq mreq;
 	mreq.imr_interface.s_addr = INADDR_ANY;
-	mreq.imr_multiaddr.s_addr = inet_addr(config.ipAddress);
+	//memset((void*)mreq.imr_multiaddr.s_addr, (unsigned int)config.ipAddress, 4);
+	mreq.imr_multiaddr.s_addr = getUint32(config.ipAddress);
 
 	if( setsockopt(_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
 		D_NWSTACKF("error IP_ADD_MEMBERSHIP in UdpPort::open\n");
@@ -325,13 +412,11 @@ int UdpPort::unicast(const uint8_t* buf, uint32_t length, uint32_t ipAddress, ui
 
 
 int UdpPort::multicast( const uint8_t* buf, uint32_t length ){
-	return unicast(buf, length, _ipAddr, _portNo);
+	return unicast(buf, length, _gIpAddr, _portNo);
 }
 
 bool UdpPort::checkRecvBuf(){
 	uint8_t buf[2];
-	//uint32_t ip;
-	//uint16_t port;
 
 	int status = ::recv(_sockfd, buf, 1,  MSG_DONTWAIT | MSG_PEEK);
 	if ( status > 0 ){

@@ -44,14 +44,14 @@
 		#include <MQTTSN_Application.h>
 		#include <Network.h>
         #include <mqttsn.h>
-		#include <util.h>
+		#include <mqUtil.h>
 #else
         #if defined(ARDUINO) && ARDUINO < 100
                 #include "WProgram.h"
                 #include <inttypes.h>
                 #include <mqttsn.h>
 				#include <Network.h>
-				#include <util.h>
+				#include <mqUtil.h>
         #else
                 #ifdef LINUX
                     #include <sys/time.h>
@@ -59,7 +59,7 @@
                 #include <iostream>
 				#include "MQTTSN_Application.h"
 				#include "Network.h"
-				#include "util.h"
+				#include "mqUtil.h"
                 #include "mqttsn.h"
         #endif
 #endif

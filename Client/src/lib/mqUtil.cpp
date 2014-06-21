@@ -1,5 +1,5 @@
 /*
- * util.cpp
+ * mqUtil.cpp
  *
  *                      The BSD License
  *
@@ -35,10 +35,10 @@
 
 #ifndef ARDUINO
         #include "MQTTSN_Application.h"
-        #include "util.h"
+        #include "mqUtil.h"
 #else
         #include <MQTTSN_Application.h>
-        #include <util.h>
+        #include <mqUtil.h>
 #endif  /* ARDUINO */
 
 #ifdef MBED

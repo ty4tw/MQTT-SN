@@ -34,19 +34,20 @@
  */
 
 #ifdef ARDUINO
-	#if defined(MQTTSN_DEBUG) || defined(ZBEE_DEBUG)
-		#include <SoftwareSerial.h>
-		extern SoftwareSerial debug;
-	#endif
+
 #endif  /* ARDUINO */
 
 #ifdef ARDUINO
 	#include <MQTTSN_Application.h>
-	#include <util.h>
+	#include <mqUtil.h>
 	#include <mqttsnClient.h>
+	#if defined(MQTTSN_DEBUG) || defined(NW_DEBUG)
+		#include <SoftwareSerial.h>
+		extern SoftwareSerial debug;
+	#endif
 #else
 	#include "MQTTSN_Application.h"
-	#include "util.h"
+	#include "mqUtil.h"
 	#include "mqttsnClient.h"
 #endif
 

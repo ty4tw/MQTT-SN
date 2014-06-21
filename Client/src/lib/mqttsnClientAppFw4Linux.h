@@ -40,7 +40,7 @@
 
 #include "MQTTSN_Application.h"
 #include "mqttsnClient.h"
-#include "util.h"
+#include "mqUtil.h"
 
 
 #define PUBLISH(...)     theApplication->publish(__VA_ARGS__)

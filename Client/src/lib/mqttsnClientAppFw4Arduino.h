@@ -40,11 +40,14 @@
 
 #include <MQTTSN_Application.h>
 #include <mqttsnClient.h>
-#include <util.h>
+#include <mqUtil.h>
 #include <avr/wdt.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <inttypes.h>
+#include <Ethernet.h>
+#include <EthernetUdp.h>
+#include <SPI.h>
 
 #define MQ_LED_PIN  13
 #define MQ_INT0_PIN 2
@@ -76,7 +79,7 @@ enum MQ_INT_STATUS{ WAIT, INT0_LL, INT0_WAIT_HL, INT_WDT};
 #define INDICATOR_OFF()  theApplication->indicatorOff()
 #define BLINK_INDICATOR(...) theApplication->blincIndicator(__VA_ARGS__)
 #define GETUTC()         theApplication->getUnixTime()
-#define GET_DATETIME(...) theApplication->getDateTime(__VA_ARGS__)
+//#define GET_DATETIME(...) theApplication->getDateTime(__VA_ARGS__)
 
 
 extern void setUint32(uint8_t*, uint32_t);

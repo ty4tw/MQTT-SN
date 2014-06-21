@@ -65,7 +65,7 @@
  *         Debug Flag
  ======================================*/
 #define NW_DEBUG
-#define MQTTSN_DEBUG
+//#define MQTTSN_DEBUG
 
 
 /****************************************
@@ -120,9 +120,10 @@ typedef struct {
 }XBeeAppConfig;
 
 typedef struct {
-	char* ipAddress;
+	uint8_t  ipAddress[4];
 	uint16_t portNo;
-	//uint16_t cPortNo;
+	uint8_t  ipLocal[4];
+	uint8_t  macAddr[6];
 }UdpConfig;
 
 typedef struct {
