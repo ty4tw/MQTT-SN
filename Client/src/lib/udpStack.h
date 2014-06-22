@@ -162,16 +162,19 @@ public:
 	int recv(uint8_t* buf, uint16_t len, bool nonblock, uint32_t* ipaddress, uint16_t* port );
 	int recv(uint8_t* buf, uint16_t len, int flags);
 	bool checkRecvBuf();
+	bool isUnicast();
 
 private:
 	void close();
 	int recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipaddress, uint16_t* port );
 
 #ifdef LINUX
-	int _sockfdUnicast;
-	int _sockfd;
-	uint16_t _portNo;
+	int _sockfdUcast;
+	int _sockfdMcast;
+	uint16_t _gPortNo;
+	uint16_t _uPortNo;
 	uint32_t _gIpAddr;
+	uint8_t  _castStat;
 #endif
 #ifdef ARDUINO
 	EthernetUDP _udpUnicast;
@@ -179,7 +182,7 @@ private:
 	IPAddress   _gIpAddr;
 	IPAddress   _cIpAddr;
 	uint16_t    _gPortNo;
-	uint16_t    _cPortNo;
+	uint16_t    _uPortNo;
 	uint8_t*    _macAddr;
 	uint8_t     _castStat;
 #endif

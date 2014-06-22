@@ -165,7 +165,7 @@ void MqttsnClientApplication::addTask(){
 	}
 }
 
-void MqttsnClientApplication::setup(){
+void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);  // re-entrant control
 	_mqttsn.subscribe();
     _mqttsn.subscribe(MQTTSN_TOPICID_PREDEFINED_TIME, setUTC,1);
@@ -175,7 +175,7 @@ void MqttsnClientApplication::initialize(APP_CONFIG config){
 	blinkIndicator(100);
     _mqttsn.initialize(config);
     XTimer::initialize();
-    this->setup();
+    setSubscribe();
 }
 
 int MqttsnClientApplication::exec(){

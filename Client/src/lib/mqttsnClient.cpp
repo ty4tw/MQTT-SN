@@ -479,9 +479,11 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
 				break;
 			}
 
+            /*---- WILLTOPICREQ or WILLMESSAGEREQ are received ---*/
             if (getMsgRequestStatus() == MQTTSN_MSG_REQUEST &&
-                (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC ||
+               (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC ||
                 getMsgRequestType() == MQTTSN_TYPE_WILLMSG) ){
+            	retry = 0;
                 break;
             }
         }
@@ -916,6 +918,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
         D_MQTTW("WILLTOPICREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_CONNECT){
             clearMsgRequest();
+        	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillTopic mqMsg = MqttsnWillTopic();
             mqMsg.setFlags(0);                               // ToDo:  add  WillQoS, WillRetain to appConfig
             mqMsg.setWillTopic(_willTopic);
@@ -927,6 +930,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
         D_MQTTW("WILLMSGREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC){
             clearMsgRequest();
+        	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillMsg mqMsg = MqttsnWillMsg();
             mqMsg.setWillMsg(_willMessage);
             requestPrioritySendMsg((MqttsnMessage*)&mqMsg);

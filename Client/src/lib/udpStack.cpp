@@ -146,7 +146,7 @@ int  Network::readApiFrame(){
 		if( len != recvLen){
 			_nlResp.setErrorCode(PACKET_EXCEEDS_LENGTH);
 						return false;
-		}else if(_gwIpAddress &&
+		}else if(_gwIpAddress && isUnicast() &&
 		 		 (_nlResp.getAddress64().getLsb() != _gwIpAddress) &&
 				 (_nlResp.getAddress16() != _gwPortNo)){
 			D_NWSTACKW("  Sender is not Gateway!\r\n" );
@@ -208,7 +208,8 @@ void UdpPort::close(){
 bool UdpPort::open(UdpConfig config){
 	_gIpAddr = IPAddress(config.ipAddress);
 	_cIpAddr = IPAddress(config.ipLocal);
-	_gPortNo = config.portNo;
+	_gPortNo = config.gPortNo;
+	_uPortNo = config.uPortNo;
 
 	memcpy(_macAddr, config.macAddr, 6);
 
@@ -217,7 +218,7 @@ bool UdpPort::open(UdpConfig config){
 	if(_udpMulticast.beginMulti(_gIpAddr, _gPortNo) == 0){
 		return false;
 	}
-	if(_udpUnicast.begin(_gPortNo) == 0){
+	if(_udpUnicast.begin(_uPortNo) == 0){
 		return false;
 	}
 
@@ -274,10 +275,12 @@ int UdpPort::recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipAddre
 	return packLen;
 }
 
-
-
+bool UdpPort::isUnicast(){
+	return ( _castStat == STAT_UNICAST);
+}
 
 #endif /* ARDUINO */
+
 
 #ifdef MBED
 /**
@@ -291,8 +294,9 @@ int UdpPort::recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipAddre
 
 UdpPort::UdpPort(){
     _disconReq = false;
-    _sockfdUnicast = -1;
-    _sockfd = -1;
+    _sockfdUcast = -1;
+    _sockfdMcast = -1;
+    _castStat = 0;
 }
 
 UdpPort::~UdpPort(){
@@ -301,12 +305,12 @@ UdpPort::~UdpPort(){
 
 
 void UdpPort::close(){
-	if(_sockfd > 0){
-		::close( _sockfd);
-		_sockfd = -1;
-	if(_sockfdUnicast > 0){
-			::close( _sockfdUnicast);
-			_sockfdUnicast = -1;
+	if(_sockfdMcast > 0){
+		::close( _sockfdMcast);
+		_sockfdMcast = -1;
+	if(_sockfdUcast > 0){
+			::close( _sockfdUcast);
+			_sockfdUcast = -1;
 		}
 	}
 }
@@ -315,56 +319,54 @@ bool UdpPort::open(UdpConfig config){
 	const int reuse = 1;
 	char loopch = 0;
 
-	_portNo = htons(config.portNo);
-	//memcpy((void*)_gIpAddr,config.ipAddress, sizeof(uint32_t));
+	_gPortNo = htons(config.gPortNo);
 	_gIpAddr = getUint32(config.ipAddress);
+	_uPortNo = htons(config.uPortNo);
 
-	if( _portNo == 0 || _gIpAddr == 0){
+	if( _gPortNo == 0 || _gIpAddr == 0 || _uPortNo == 0){
 		return false;
 	}
 
-	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, 0);
-	if (_sockfdUnicast < 0){
+	_sockfdUcast = socket(AF_INET, SOCK_DGRAM, 0);
+	if (_sockfdUcast < 0){
 		return false;
 	}
 
-	setsockopt(_sockfdUnicast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+	setsockopt(_sockfdUcast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(config.portNo);
+	addr.sin_port = _uPortNo;
 	addr.sin_addr.s_addr = INADDR_ANY;
 
-	if( ::bind ( _sockfdUnicast, (struct sockaddr*)&addr,  sizeof(addr)) <0){
+	if( ::bind ( _sockfdUcast, (struct sockaddr*)&addr,  sizeof(addr)) <0){
 		return false;
 	}
 
-
-	_sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (_sockfd < 0){
+	_sockfdMcast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (_sockfdMcast < 0){
 		return false;
 	}
 
 	struct sockaddr_in addrm;
 	addrm.sin_family = AF_INET;
-	addrm.sin_port = htons(config.portNo);
+	addrm.sin_port = _gPortNo;
 	addrm.sin_addr.s_addr = INADDR_ANY;
 
-	setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+	setsockopt(_sockfdMcast, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
-	if( ::bind ( _sockfd, (struct sockaddr*)&addrm,  sizeof(addrm)) <0){
+	if( ::bind ( _sockfdMcast, (struct sockaddr*)&addrm,  sizeof(addrm)) <0){
 		return false;
 	}
 
-
-	if(setsockopt(_sockfdUnicast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
+	if(setsockopt(_sockfdUcast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
 		D_NWSTACKW("error IP_MULTICAST_LOOP in UdpPort::open\n");
 
 		close();
 		return false;
 	}
 
-	if(setsockopt(_sockfd, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
+	if(setsockopt(_sockfdMcast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
 		D_NWSTACKW("error IP_MULTICAST_LOOP in UdpPPort::open\n");
 		close();
 		return false;
@@ -372,22 +374,25 @@ bool UdpPort::open(UdpConfig config){
 
 	ip_mreq mreq;
 	mreq.imr_interface.s_addr = INADDR_ANY;
-	//memset((void*)mreq.imr_multiaddr.s_addr, (unsigned int)config.ipAddress, 4);
 	mreq.imr_multiaddr.s_addr = getUint32(config.ipAddress);
 
-	if( setsockopt(_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
+	if( setsockopt(_sockfdMcast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
 		D_NWSTACKF("error IP_ADD_MEMBERSHIP in UdpPort::open\n");
 		close();
 		return false;
 	}
-
-	if( setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
+/*
+	if( setsockopt(_sockfdUcast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq) )< 0){
 		D_NWSTACKF("error IP_ADD_MEMBERSHIP in UdpPort::open\n");
 		close();
 		return false;
 	}
-
+*/
 	return true;
+}
+
+bool UdpPort::isUnicast(){
+	return ( _castStat == STAT_UNICAST);
 }
 
 
@@ -397,11 +402,31 @@ int UdpPort::unicast(const uint8_t* buf, uint32_t length, uint32_t ipAddress, ui
 	dest.sin_port = port;
 	dest.sin_addr.s_addr = ipAddress;
 
-	int status = ::sendto( _sockfd, buf, length, 0, (const sockaddr*)&dest, sizeof(dest) );
+	int status = ::sendto( _sockfdUcast, buf, length, 0, (const sockaddr*)&dest, sizeof(dest) );
 	if( status < 0){
-		D_NWSTACKF("errno == %d in UdpPort::sendto\n", errno);
+		D_NWSTACKF("errno == %d in UdpPort::unicast\n", errno);
 	}else{
 		D_NWSTACKF("sendto %s:%u  [",inet_ntoa(dest.sin_addr),htons(port));
+		for(uint16_t i = 0; i < length ; i++){
+			D_NWSTACKF(" %02x", *(buf + i));
+		}
+		D_NWSTACKF(" ]\n");
+	}
+	return status;
+}
+
+
+int UdpPort::multicast( const uint8_t* buf, uint32_t length ){
+	struct sockaddr_in dest;
+	dest.sin_family = AF_INET;
+	dest.sin_port = _gPortNo;
+	dest.sin_addr.s_addr = _gIpAddr;
+
+	int status = ::sendto( _sockfdMcast, buf, length, 0, (const sockaddr*)&dest, sizeof(dest) );
+	if( status < 0){
+		D_NWSTACKF("errno == %d in UdpPort::multicast\n", errno);
+	}else{
+		D_NWSTACKF("sendto %s:%u  [",inet_ntoa(dest.sin_addr),htons(_gPortNo));
 		for(uint16_t i = 0; i < length ; i++){
 			D_NWSTACKF(" %02x", *(buf + i));
 		}
@@ -410,20 +435,40 @@ int UdpPort::unicast(const uint8_t* buf, uint32_t length, uint32_t ipAddress, ui
 	return errno;
 }
 
-
-int UdpPort::multicast( const uint8_t* buf, uint32_t length ){
-	return unicast(buf, length, _gIpAddr, _portNo);
-}
-
 bool UdpPort::checkRecvBuf(){
-	uint8_t buf[2];
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 500000;    // 500 msec
 
-	int status = ::recv(_sockfd, buf, 1,  MSG_DONTWAIT | MSG_PEEK);
-	if ( status > 0 ){
-		return true;
+	uint8_t buf[2];
+	fd_set recvfds;
+	int maxSock = 0;
+
+	FD_ZERO(&recvfds);
+	FD_SET(_sockfdUcast, &recvfds);
+	FD_SET(_sockfdMcast, &recvfds);
+
+	if(_sockfdMcast > _sockfdUcast){
+		maxSock = _sockfdMcast;
 	}else{
-		return false;
+		maxSock = _sockfdUcast;
 	}
+
+	select(maxSock + 1, &recvfds, 0, 0, &timeout);
+
+	if(FD_ISSET(_sockfdUcast, &recvfds)){
+		if( ::recv(_sockfdUcast, buf, 1,  MSG_DONTWAIT | MSG_PEEK) > 0){
+			_castStat = STAT_UNICAST;
+			return true;
+		}
+	}else if(FD_ISSET(_sockfdMcast, &recvfds)){
+		if( ::recv(_sockfdMcast, buf, 1,  MSG_DONTWAIT | MSG_PEEK) > 0){
+			_castStat = STAT_MULTICAST;
+			return true;
+		}
+	}
+	_castStat = 0;
+	return false;
 }
 
 int UdpPort::recv(uint8_t* buf, uint16_t len, bool flg, uint32_t* ipAddressPtr, uint16_t* portPtr){
@@ -433,13 +478,20 @@ int UdpPort::recv(uint8_t* buf, uint16_t len, bool flg, uint32_t* ipAddressPtr, 
 
 int UdpPort::recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipAddressPtr, uint16_t* portPtr ){
 	struct sockaddr_in sender;
+	int status;
 	socklen_t addrlen = sizeof(sender);
 	memset(&sender, 0, addrlen);
 
-	int status = ::recvfrom( _sockfd, buf, len, flags, (struct sockaddr*)&sender, &addrlen );
+	if(_castStat == STAT_UNICAST){
+		status = ::recvfrom( _sockfdUcast, buf, len, flags, (struct sockaddr*)&sender, &addrlen );
+	}else if(_castStat == STAT_MULTICAST){
+		status = ::recvfrom( _sockfdMcast, buf, len, flags, (struct sockaddr*)&sender, &addrlen );
+	}else{
+		return 0;
+	}
+
 	if (status < 0 && errno != EAGAIN)	{
 		D_NWSTACKF("errno == %d in UdpPort::recvfrom \n", errno);
-		return -1;
 	}else if(status > 0){
 		*ipAddressPtr = sender.sin_addr.s_addr;
 		*portPtr = sender.sin_port;
@@ -448,9 +500,10 @@ int UdpPort::recvfrom ( uint8_t* buf, uint16_t len, int flags, uint32_t* ipAddre
 			D_NWSTACKF(" %02x", *(buf + i));
 		}
 		D_NWSTACKF(" ]\n");
-		return status;
+	}else{
+		return 0;
 	}
-	return 0;
+	return status;
 }
 
 

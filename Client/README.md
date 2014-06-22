@@ -1,18 +1,17 @@
 MQTT-SN Client
 ======
-  MQTT-SN Client over XBee (running on linux, Arduino and mbed)
+  MQTT-SN Client over XBee (running on linux, Arduino and mbed)    
   MQTT-SN Client over UDP  (running on linux and Arduino)  
   
   
 Supported functions
 -------------------
 
-*  QOS Level 0 and 1
+   QOS Level 0 and 1
 *  SEARCHGW, GWINFO
 *  CONNECT, WILLTOPICREQ, WILLTOPIC, WILLMSGREQ, WILLMSG
 *  PINGREQ, PINGRESP
-*  CONNACK, REGISTER, REGACK, SUBACK, PUBACK, UNSUBACK
-*  
+*  CONNACK, REGISTER, REGACK, SUBACK, PUBACK, UNSUBACK 
 *  SUBSCRIBE, PUBLISH, UNSUBSCRIBE, DISCONNECT
 
 Implemented control flows:  
@@ -53,11 +52,11 @@ Implemented control flows:
 Usage
 ------
 ####Minimum requirements
-  Over XBee
-  Three XBee S2 devices,  a coordinator, a gateway and a client.
-  or two XBee S1 with digimesh firmware, gateway and client.
+  Over XBee    
+  Three XBee S2 devices,  a coordinator, a gateway and a client.    
+  or two XBee S1 with digimesh firmware, gateway and client.    
   
-  Over UDP
+  Over UDP    
   Arduino with Ethernet shield or Arduino Ether.
   or linux client.
 
@@ -66,17 +65,17 @@ Usage
 
 ####1) Start Gateway  
 
-    see MQTT-SN/Gateway    
+  see MQTT-SN/Gateway    
     
     
   
 ####2) Start Client   (-d parameter is a device which XBee dongle connected.)  
     
-    1. XBee client    
+  1. XBee client    
 
     $ TomyClient  -i ClientID  -d /dev/ttyUSB0  -b 9600    
 
-    2. UDP Client (Linux only, Arduino is embeded parameters defined by UDP_APP_CONFIG)    
+  2. UDP Client (Linux only, Arduino is embeded parameters defined by UDP_APP_CONFIG)    
 
     $ TomyClient  -i ClientID  -g  225.1.1.1  -p 1883   -c  -t WillTopic  -m WillMessage -k 300 
 
@@ -105,24 +104,22 @@ Usage
 How to Build (Requiered source code list)
 -----------
 ####1) Linux Client
-*  src/lib/*    
-*  LinuxClientSample.cpp  
+_copy src/lib/*  and src/LinuxClientSample.cpp_  
 
-   $ make    
-   $ make install    
+     $ make    
+     $ make install    
+
 ####2) Arduino Client
 _Copy src/lib into Aruino Librally directory._
+_Copy SoilMoistureClientSample.ino into Aruino sketch directory._
 
-_Copy this file into Aruino sketch directory._
-*  SoilMoistureClientSample.ino
   
 _in IPAddress.h, change raw_address() tp public from private._  
 _Add beginMulticast() to EthernetUDP.cpp_   
 see http://forum.arduino.cc/index.php?topic=150006.0    
 
 ####3) mbed Client
-*  mqttslib    
-*  MbedClientApp.cpp  
+_copy src/lib/*  and src/mbedClientSample.cpp_  
 
 Module descriptions
 -------------------  

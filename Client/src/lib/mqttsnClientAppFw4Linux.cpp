@@ -59,10 +59,9 @@ extern void  setup();
 		main function
 =========================================*/
 int main(int argc, char **argv){
-
 	theApplication->addTask();
-	theApplication->initialize(argc, argv);
 	setup();
+	theApplication->initialize(argc, argv);
 	theApplication->run();
 	return 0;
 }
@@ -113,17 +112,18 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 #endif
 #ifdef NETWORK_UDP
 	char* ipAddr = 0;
-	uint16_t portNo = 0;
-	//uint16_t cPortNo = 0;
+	uint16_t gPortNo = 0;
+	uint16_t uPortNo = 0;
 #endif
 
-	while((arg = getopt(argc, argv, "hcb:d:i:k:t:m:g:p:"))!= -1){
+	while((arg = getopt(argc, argv, "hcb:d:u:i:k:t:m:g:p:"))!= -1){
 		switch(arg){
 		case 'h':
 			printf("Usage:  -b: [baudrate]      (XBee)\n");
 			printf("        -d: [device]        (XBee)\n");
 			printf("        -g: [groupIp]       (UDP)\n");
 			printf("        -p: [group portNo]  (UDP)\n");
+			printf("        -u: [client portNo] (UDP)\n");
 			printf("        -c: CleanSession\n");
 			printf("        -i: [ClientId]\n");
 			printf("        -k: [keepAliveTime in second]\n");
@@ -180,7 +180,10 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 			ipAddr = optarg;
 			break;
 		case 'p':
-			portNo = atoi(optarg);
+			gPortNo = atoi(optarg);
+			break;
+		case 'u':
+			uPortNo = atoi(optarg);
 			break;
 #endif
 		case '?':
@@ -194,8 +197,9 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 	theAppConfig.netCfg.device = strdup(dev);
 #endif
 #ifdef NETWORK_UDP
-	if(portNo || ipAddr[0]){
-		theAppConfig.netCfg.portNo = portNo;
+	if(gPortNo && ipAddr[0] && uPortNo){
+		theAppConfig.netCfg.gPortNo = gPortNo;
+		theAppConfig.netCfg.uPortNo = uPortNo;
 		uint32_t ipaddr = inet_addr(ipAddr);
 		theAppConfig.netCfg.ipAddress[0] = (ipaddr & 0xff000000) >> 24;
 		theAppConfig.netCfg.ipAddress[1] = (ipaddr & 0x00ff0000) >> 16;
@@ -215,10 +219,10 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 
 	_mqttsn.initialize(theAppConfig);
 
-	setup();
+	setSubscribe();
 }
 
-void MqttsnClientApplication::setup(){
+void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);
 	_mqttsn.subscribe();
 }
@@ -292,7 +296,7 @@ bool WdTimer::wakeUp(void){
 		if ((_timerTbls[i].prevTime + _timerTbls[i].interval < (uint32_t)time(0)) || _initFlg){
 			rc = (_timerTbls[i].callback)();
 			if(rc == MQTTSN_ERR_REBOOT_REQUIRED){
-				theApplication->setup();
+				theApplication->setSubscribe();
 			}
 			_timerTbls[i].prevTime = time(0);
 			rcflg = true;

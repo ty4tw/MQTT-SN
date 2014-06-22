@@ -69,8 +69,8 @@ int main(){
 	}
 
 	theApplication->addTask();
-	theApplication->initialize(theAppConfig);
 	setup();
+	theApplication->initialize(theAppConfig);
 	theApplication->run();
 	return 0;
 }
@@ -118,10 +118,10 @@ int MqttsnClientApplication::run(){
 
 void MqttsnClientApplication::initialize(APP_CONFIG config){
 	_mqttsn.initialize(config);
-	setup();
+	setSubscribe();
 }
 
-void MqttsnClientApplication::setup(){
+void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);  // re-entrant control
 	_mqttsn.subscribe();
 	_mqttsn.subscribe(MQTTSN_TOPICID_PREDEFINED_TIME, setUTC,1);

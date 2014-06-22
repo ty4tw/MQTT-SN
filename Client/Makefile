@@ -42,3 +42,7 @@ clean:
 
 distclean:
 	rm -rf Build
+	
+install:
+	cp -p $(PROG) ../../
+	

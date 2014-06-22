@@ -51,7 +51,7 @@
         0               //Device (for linux App)
     }, 
     {             
-        "Node01",       //ClientId
+        "ARD01",       //ClientId
         300,            //KeepAlive
         true,           //Clean session
         true,           //EndDevice
@@ -66,11 +66,12 @@ UDP_APP_CONFIG = {
     { 
         {225,1,1,1},         // Multicast group IP
         1883,                // Multicast group Port
-        {192,168,11,18},      // Local IP     (for Arduino App)
+        {192,168,11,18},     // Local IP     (for Arduino App)
+        12001,               // Local PortNo
         {0x0,0x0,0x0,0x0,0x0,0x0}       // MAC address  (for Arduino App)
     },
     { 
-        "Node01",       //ClientId
+        "ARD01",       //ClientId
         300,            //KeepAlive
         true,           //Clean session
         true,           //EndDevice

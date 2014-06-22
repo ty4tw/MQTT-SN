@@ -86,7 +86,7 @@ public:
 	~MqttsnClientApplication();
 	void refleshWdtCallbackTable();
 	void initialize(int argc, char** argv);
-	void setup();
+	void setSubscribe();
 
 	int publish(MQString* topic, const char* data, int dataLength, uint8_t qos = 1);
 	int publish(uint16_t predefinedId, const char* data, int dataLength, uint8_t qos = 1);

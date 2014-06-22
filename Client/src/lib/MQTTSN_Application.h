@@ -121,8 +121,9 @@ typedef struct {
 
 typedef struct {
 	uint8_t  ipAddress[4];
-	uint16_t portNo;
+	uint16_t gPortNo;
 	uint8_t  ipLocal[4];
+	uint16_t uPortNo;
 	uint8_t  macAddr[6];
 }UdpConfig;
 
