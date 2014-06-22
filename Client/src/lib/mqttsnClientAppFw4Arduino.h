@@ -118,7 +118,7 @@ public:
 	void registerWdtCallback(long sec, int (*callback)(void));
 	void refleshWdtCallbackTable();
 	void initialize(APP_CONFIG config);
-	void setup();
+	void setSubscribe();
 	void setKeepAlive(uint16_t msec);
 	void setWillTopic(MQString* willTopic);
 	void setWillMessage(MQString* willMsg);

@@ -68,7 +68,7 @@ UDP_APP_CONFIG = {
         1883,                // Multicast group Port
         {192,168,11,18},     // Local IP     (for Arduino App)
         12001,               // Local PortNo
-        {0x0,0x0,0x0,0x0,0x0,0x0}       // MAC address  (for Arduino App)
+        {0x0,0x0,0x0,0x0,0x0,0x0}   // MAC address  (for Arduino App)
     },
     { 
         "ARD01",       //ClientId
