@@ -200,6 +200,7 @@ void ClientNode::setConnectMessage(MQTTConnect* msg){
 void ClientNode::checkTimeover(){
 	if(_status == Cstat_Active && _keepAliveTimer.isTimeup()){
 		_status = Cstat_Lost;
+		_socket.disconnect();
 	}
 }
 

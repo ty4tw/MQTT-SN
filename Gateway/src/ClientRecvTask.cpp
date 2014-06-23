@@ -147,6 +147,12 @@ void ClientRecvTask::run(){
 					clnode->setClientRecvMessage(msg);
 					ev->setClientRecvEvent(clnode);
 
+				}else if(resp->getMsgType() == MQTTSN_TYPE_PUBREL){
+					MQTTSnPubRel* msg = new MQTTSnPubRel();
+					msg->absorb(resp);
+					clnode->setClientRecvMessage(msg);
+					ev->setClientRecvEvent(clnode);
+
 				}else if (resp->getMsgType() == MQTTSN_TYPE_CONNECT){
 					MQTTSnConnect* msg = new MQTTSnConnect();
 					msg->absorb(resp);

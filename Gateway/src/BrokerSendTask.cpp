@@ -95,6 +95,11 @@ void BrokerSendTask::run(){
 			length = msg->serialize(buffer);
 			printf(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
+		else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
+			MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
+			length = msg->serialize(buffer);
+			printf(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+		}
 		else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
 			MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
 			length = msg->serialize(buffer);
@@ -156,8 +161,9 @@ char*  BrokerSendTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 	sprintf(buf, " %02X", *buffer);
 	buf += 3;
 
-	for(int i = 0; i < msg->getRemainLength(); i++){
-		sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
+	for(int i = 0; i < msg->getRemainLength() + msg->getRemainLengthSize(); i++){
+		//sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
+		sprintf(buf, " %02X", *( buffer + 1  + i));
 		buf += 3;
 	}
 	*buf = 0;

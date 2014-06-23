@@ -443,6 +443,43 @@ private:
 	uint16_t _msgId;
 	uint8_t  _returnCode;
  };
+
+/*=====================================
+         Class MQTTSnPubRec
+  ======================================*/
+class MQTTSnPubRec : public MQTTSnMessage  {
+public:
+	MQTTSnPubRec();
+    ~MQTTSnPubRec();
+    void setMsgId(uint16_t msgId);
+    uint16_t getMsgId();
+
+    //void absorb(MQTTSnMessage* src);
+    //void absorb(NWResponse* src);
+protected:
+	uint16_t _msgId;
+ };
+
+/*=====================================
+         Class MQTTSnPubRel
+  ======================================*/
+class MQTTSnPubRel : public MQTTSnPubRec  {
+public:
+	MQTTSnPubRel();
+    ~MQTTSnPubRel();
+ };
+
+/*=====================================
+         Class MQTTSnPubRel
+  ======================================*/
+class MQTTSnPubComp : public MQTTSnPubRec  {
+public:
+	MQTTSnPubComp();
+    ~MQTTSnPubComp();
+private:
+
+ };
+
  /*=====================================
          Class MQTTSnSubscribe
   ======================================*/
@@ -678,6 +715,39 @@ public:
 
 };
 
+/*=====================================
+         Class MQTTPubRec
+  ======================================*/
+class MQTTPubRec : public MQTTMessage{
+public:
+	MQTTPubRec();
+	~MQTTPubRec();
+	void setMessageId(uint16_t);
+	uint16_t getMessageId();
+
+};
+
+/*=====================================
+         Class MQTTPubRel
+  ======================================*/
+class MQTTPubRel : public MQTTPubRec{
+public:
+	MQTTPubRel();
+	~MQTTPubRel();
+	//void setMessageId(uint16_t);
+	//uint16_t getMessageId();
+};
+
+/*=====================================
+         Class MQTTPubComp
+  ======================================*/
+class MQTTPubComp : public MQTTPubRec{
+public:
+	MQTTPubComp();
+	~MQTTPubComp();
+	//void setMessageId(uint16_t);
+	//uint16_t getMessageId();
+};
 /*=====================================
          Class MQTTConnAck
   ======================================*/

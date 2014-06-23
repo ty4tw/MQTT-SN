@@ -446,6 +446,12 @@ const char* MqttsnMessage::getMsgTypeName(){
 		return "PUBLISH";
 	case 0x0d:
 		return "PUBACK";
+	case 0x0e:
+		return "PUBCOMP";
+	case 0x0f:
+		return "PUBREC";
+	case 0x10:
+		return "PUBREL";
 	case 0x12:
 		return "SUBSCRIBE";
 	case 0x13:
@@ -842,8 +848,10 @@ uint8_t MqttsnPublish::getQos(){
 }
 
 void MqttsnPublish::setQos(uint8_t qos){
-	if(qos){
+	if(qos == QOS1){
 		_flags |= 0x20;
+	}else if(qos == QOS2){
+		_flags |= 0x40;
 	}else{
 		_flags &= 0x9f;
 	}
@@ -959,6 +967,52 @@ void MqttsnPubAck::setReturnCode(uint8_t rc){
 }
 uint8_t MqttsnPubAck::getReturnCode(){
     return (uint8_t)getBody()[4];
+}
+
+/*=====================================
+         Class MqttsnPubRec
+ ======================================*/
+MqttsnPubRec::MqttsnPubRec(){
+    setLength(4);
+    setType(MQTTSN_TYPE_PUBREC);
+    allocateBody();
+}
+MqttsnPubRec::~MqttsnPubRec(){
+
+}
+
+uint16_t MqttsnPubRec::getMsgId(){
+    return getUint16(getBody());
+}
+
+void MqttsnPubRec::setMsgId(uint16_t msgId){
+    setUint16(getBody(),msgId);
+}
+
+/*=====================================
+         Class MqttsnPubRel
+ ======================================*/
+MqttsnPubRel::MqttsnPubRel(){
+    setLength(4);
+    setType(MQTTSN_TYPE_PUBREL);
+    allocateBody();
+}
+
+MqttsnPubRel::~MqttsnPubRel(){
+
+}
+
+/*=====================================
+         Class MqttsnPubComp
+ ======================================*/
+MqttsnPubComp::MqttsnPubComp(){
+    setLength(4);
+    setType(MQTTSN_TYPE_PUBCOMP);
+    allocateBody();
+}
+
+MqttsnPubComp::~MqttsnPubComp(){
+
 }
 
  /*=====================================

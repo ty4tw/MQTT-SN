@@ -64,8 +64,8 @@
 /*======================================
  *         Debug Flag
  ======================================*/
-//#define NW_DEBUG
-//#define MQTTSN_DEBUG
+#define NW_DEBUG
+#define MQTTSN_DEBUG
 
 
 /****************************************

@@ -574,9 +574,11 @@ uint8_t MQTTSnPublish::getQos(){
 }
 
 void MQTTSnPublish::setQos(uint8_t qos){
-		_flags &= 0x9f;
-		if( qos == 1){
+	_flags &= 0x9f;
+	if( qos == 1){
 		_flags |= MQTTSN_FLAG_QOS_1;
+	}else if( qos == 2){
+		_flags |= MQTTSN_FLAG_QOS_2;
 	}
 	setFlags(_flags);
 }
@@ -721,6 +723,60 @@ void MQTTSnPubAck::absorb(MQTTSnMessage* src){
 
 void MQTTSnPubAck::absorb(NWResponse* resp){
 	MQTTSnMessage::absorb(resp);
+}
+
+/*=====================================
+         Class MQTTSnPubRec
+ ======================================*/
+MQTTSnPubRec::MQTTSnPubRec(){
+	_msgId = 0;
+    setMessageLength(4);
+    setType(MQTTSN_TYPE_PUBREC);
+    allocate();
+}
+
+MQTTSnPubRec::~MQTTSnPubRec(){
+
+}
+
+void MQTTSnPubRec::setMsgId(uint16_t msgId){
+    setUint16(getBodyPtr(),msgId);
+}
+
+uint16_t MQTTSnPubRec::getMsgId(){
+    return getUint16((unsigned char*)getBodyPtr());
+}
+/*
+void MQTTSnPubRec::absorb(NWResponse* resp){
+	MQTTSnMessage::absorb(resp);
+}*/
+
+/*=====================================
+         Class MQTTSnPubRel
+ ======================================*/
+MQTTSnPubRel::MQTTSnPubRel(){
+	_msgId = 0;
+    setMessageLength(4);
+    setType(MQTTSN_TYPE_PUBREL);
+    allocate();
+}
+
+MQTTSnPubRel::~MQTTSnPubRel(){
+
+}
+
+/*=====================================
+         Class MQTTSnPubComp
+ ======================================*/
+MQTTSnPubComp::MQTTSnPubComp(){
+	_msgId = 0;
+    setMessageLength(4);
+    setType(MQTTSN_TYPE_PUBCOMP);
+    allocate();
+}
+
+MQTTSnPubComp::~MQTTSnPubComp(){
+
 }
 
  /*=====================================
@@ -1154,6 +1210,9 @@ bool MQTTMessage::deserialize(uint8_t* buf){
 			break;
 		case MQTT_TYPE_UNSUBACK:
 		case MQTT_TYPE_PUBACK:
+		case MQTT_TYPE_PUBREC:
+		case MQTT_TYPE_PUBREL:
+		case MQTT_TYPE_PUBCOMP:
 			_messageId = getUint16(buf + 2);
 			break;
 		default:
@@ -1174,8 +1233,10 @@ void MQTTMessage::setType(uint8_t type){
 }
 void MQTTMessage::setQos(uint8_t qos){
 	_flags &= 0xf9;
-	if(qos){
+	if(qos == 1){
 		_flags |= 0x02;
+	}else if(qos == 2){
+		_flags |= 0x04;
 	}
 }
 
@@ -1289,6 +1350,48 @@ uint16_t MQTTPubAck::getMessageId(){
 	return _messageId;
 }
 
+/*=====================================
+         Class MQTTPubRec
+  ======================================*/
+MQTTPubRec::MQTTPubRec(){
+	_type = MQTT_TYPE_PUBREC;
+	_remainLength = 2;
+}
+
+MQTTPubRec::~MQTTPubRec(){
+
+}
+void MQTTPubRec::setMessageId(uint16_t id){
+	_messageId = id;
+}
+
+uint16_t MQTTPubRec::getMessageId(){
+	return _messageId;
+}
+
+/*=====================================
+         Class MQTTPubRel
+  ======================================*/
+MQTTPubRel::MQTTPubRel(){
+	_type = MQTT_TYPE_PUBREL;
+	_remainLength = 2;
+}
+
+MQTTPubRel::~MQTTPubRel(){
+
+}
+
+/*=====================================
+         Class MQTTPubComp
+  ======================================*/
+MQTTPubComp::MQTTPubComp(){
+	_type = MQTT_TYPE_PUBCOMP;
+	_remainLength = 2;
+}
+
+MQTTPubComp::~MQTTPubComp(){
+
+}
 
 /*=====================================
          Class MQTTSubAck

@@ -70,6 +70,9 @@ private:
 	void handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
 	void handleSnDisconnect(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
 	void handleSnRegister(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
+	void handleSnPubRec(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
+	void handleSnPubRel(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
+	void handleSnPubComp(Event* ev, ClientNode* clnode, MQTTSnMessage* msg);
 
 	void handlePuback(Event* ev, ClientNode* clnode, MQTTMessage* msg);
 	void handlePingresp(Event* ev, ClientNode* clnode, MQTTMessage* msg);
@@ -78,6 +81,9 @@ private:
 	void handleConnack(Event* ev, ClientNode* clnode, MQTTMessage* msg);
 	void handlePublish(Event* ev, ClientNode* clnode, MQTTMessage* msg);
 	void handleDisconnect(Event* ev, ClientNode* clnode, MQTTMessage* msg);
+	void handlePubRec(Event* ev, ClientNode* clnode, MQTTMessage* msg);
+	void handlePubRel(Event* ev, ClientNode* clnode, MQTTMessage* msg);
+	void handlePubComp(Event* ev, ClientNode* clnode, MQTTMessage* msg);
 	char* msgPrint(MQTTSnMessage* msg);
 	char* msgPrint(MQTTMessage* msg);
 };

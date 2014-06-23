@@ -135,6 +135,29 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			printf(BLUE_FORMAT1, currentDateTime(), "PUBACK", LEFTARROW, BROKER, msgPrint(sbuff, puback));
 
 			clnode->setBrokerRecvMessage(puback);
+		}else if((*packet & 0xf0) == MQTT_TYPE_PUBREC){
+			MQTTPubRec* pubRec = new MQTTPubRec();
+			pubRec->deserialize(packet);
+			pubRec->serialize(sbuff);
+			printf(BLUE_FORMAT1, currentDateTime(), "PUBREC", LEFTARROW, BROKER, msgPrint(sbuff, pubRec));
+
+			clnode->setBrokerRecvMessage(pubRec);
+
+		}else if((*packet & 0xf0) == MQTT_TYPE_PUBREL){
+			MQTTPubRel* pubRel = new MQTTPubRel();
+			pubRel->deserialize(packet);
+			pubRel->serialize(sbuff);
+			printf(BLUE_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, BROKER, msgPrint(sbuff, pubRel));
+
+			clnode->setBrokerRecvMessage(pubRel);
+
+		}else if((*packet & 0xf0) == MQTT_TYPE_PUBCOMP){
+			MQTTPubComp* pubComp = new MQTTPubComp();
+			pubComp->deserialize(packet);
+			pubComp->serialize(sbuff);
+			printf(BLUE_FORMAT1, currentDateTime(), "PUBCOMP", LEFTARROW, BROKER, msgPrint(sbuff, pubComp));
+
+			clnode->setBrokerRecvMessage(pubComp);
 
 		}else if((*packet & 0xf0) == MQTT_TYPE_PUBLISH){
 			MQTTPublish* publish = new MQTTPublish();
@@ -200,8 +223,9 @@ char*  BrokerRecvTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 	sprintf(buf, " %02X", *buffer);
 	buf += 3;
 
-	for(int i = 0; i < msg->getRemainLength(); i++){
-		sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
+	for(int i = 0; i < msg->getRemainLength() + msg->getRemainLengthSize(); i++){
+		//sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
+		sprintf(buf, " %02X", *( buffer + 1 + i));
 		buf += 3;
 	}
 	*buf = 0;

@@ -309,7 +309,7 @@ int MqttsnClient::exec(){
 		}else{
 			continue;
 		}
-        clearMsgRequest();
+		clearMsgRequest();
 		break;
 	}
 
@@ -486,6 +486,14 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
             	retry = 0;
                 break;
             }
+            /*
+            if (getMsgRequestStatus() == MQTTSN_MSG_REQUEST &&
+			    (getMsgRequestType() == MQTTSN_TYPE_PUBLISH ||
+				 getMsgRequestType() == MQTTSN_TYPE_PUBREL )){
+				retry = 0;
+				break;
+			}*/
+
         }
 		setMsgRequestStatus(MQTTSN_MSG_REQUEST);
         retry++;
@@ -688,6 +696,20 @@ int MqttsnClient::pubAck(uint16_t topicId, uint16_t msgId, uint8_t rc){
     mqttsMsg.setTopicId(topicId);
     mqttsMsg.setMsgId(msgId);
     mqttsMsg.setReturnCode(rc);
+    return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
+}
+
+/*--------- PUBREL ------*/
+int MqttsnClient::pubRel(uint16_t msgId){
+    MqttsnPubRel mqttsMsg = MqttsnPubRel();
+    mqttsMsg.setMsgId(msgId);
+    return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
+}
+
+/*--------- PUBCOMP ------*/
+int MqttsnClient::pubComp(uint16_t msgId){
+    MqttsnPubComp mqttsMsg = MqttsnPubComp();
+    mqttsMsg.setMsgId(msgId);
     return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
 }
 
@@ -935,9 +957,52 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
             mqMsg.setWillMsg(_willMessage);
             requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
         }
+
+/*---------  PUBREC  ----------*/
+	}else if (msgType == MQTTSN_TYPE_PUBREC &&
+			(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK &&
+			 getMsgRequestType() == MQTTSN_TYPE_PUBLISH)){
+		MqttsnPubRec mqMsg = MqttsnPubRec();
+		copyMsg(&mqMsg, recvMsg);
+
+		D_MQTTW("\nPUBREC recv\r\n");
+
+		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody() + 3)){
+			MqttsnPubRel mqrMsg = MqttsnPubRel();
+			mqrMsg.setMsgId(mqMsg.getMsgId());
+			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
+		}
+
+/*---------  PUBREL  ----------*/
+	}else if (msgType == MQTTSN_TYPE_PUBREL &&
+			(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK &&
+			 getMsgRequestType() == MQTTSN_TYPE_PUBREC)){
+		MqttsnPubRel mqMsg = MqttsnPubRel();
+		copyMsg(&mqMsg, recvMsg);
+
+		D_MQTTW("\nPUBREL recv\r\n");
+
+		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
+			MqttsnPubComp mqrMsg = MqttsnPubComp();
+			mqrMsg.setMsgId(mqMsg.getMsgId());
+			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
+		}
+/*---------  PUBCOMP  ----------*/
+	}else if (msgType == MQTTSN_TYPE_PUBCOMP &&
+			(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK &&
+			 getMsgRequestType() == MQTTSN_TYPE_PUBREL)){
+		MqttsnPubComp mqMsg = MqttsnPubComp();
+		copyMsg(&mqMsg, recvMsg);
+
+		D_MQTTW("\nPUBCOMP recv\r\n");
+
+		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
+			clearMsgRequest();    // delete request of PUBREL
+			setMsgRequestStatus(MQTTSN_MSG_COMPLETE);  // PUBLISH complete
+		}
     }else{
 		*returnCode = PACKET_ERROR_NODATA;
-    }
+	}
 }
 
 

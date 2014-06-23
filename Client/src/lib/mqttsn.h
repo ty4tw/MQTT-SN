@@ -167,7 +167,7 @@
 
 #define QOS0  0
 #define QOS1  1
-
+#define QOS2  2
 
 extern uint16_t getUint16(uint8_t* pos);
 extern void setUint16(uint8_t* pos, uint16_t val);
@@ -464,6 +464,43 @@ public:
 private:
 
  };
+
+/*=====================================
+         Class MqttsnPubRec
+  ======================================*/
+class MqttsnPubRec : public MqttsnMessage  {
+public:
+	MqttsnPubRec();
+    ~MqttsnPubRec();
+    void setMsgId(uint16_t msgId);
+    uint16_t getMsgId();
+
+private:
+
+ };
+
+/*=====================================
+         Class MqttsnPubRel
+  ======================================*/
+class MqttsnPubRel : public MqttsnPubRec  {
+public:
+	MqttsnPubRel();
+    ~MqttsnPubRel();
+private:
+
+ };
+
+/*=====================================
+         Class MqttsnPubComp
+  ======================================*/
+class MqttsnPubComp : public MqttsnPubRec  {
+public:
+	MqttsnPubComp();
+    ~MqttsnPubComp();
+private:
+
+ };
+
  /*=====================================
          Class MqttsnSubscribe
   ======================================*/
