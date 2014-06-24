@@ -292,24 +292,27 @@ int MqttsnClient::exec(){
         rc = sendRecvMsg();
 
         if(rc == MQTTSN_ERR_NO_ERROR || rc == MQTTSN_ERR_INVALID_TOPICID){
-        	// NOP
+    		clearMsgRequest();
         }else if (rc == MQTTSN_ERR_RETRY_OVER){
-			if(getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC    ||
-				    getMsgRequestType() == MQTTSN_TYPE_WILLMSG   ||
-				    getMsgRequestType() == MQTTSN_TYPE_PINGREQ   ||
-				    getMsgRequestType() == MQTTSN_TYPE_PUBLISH   ||
-				    getMsgRequestType() == MQTTSN_TYPE_REGISTER  ||
-				    getMsgRequestType() == MQTTSN_TYPE_SUBSCRIBE ||
-				    getMsgRequestType() == MQTTSN_TYPE_CONNECT   ||
-				    getMsgRequestType() == MQTTSN_TYPE_UNSUBSCRIBE){
-				_clientStatus.init();
+			if( getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC    ||
+			    getMsgRequestType() == MQTTSN_TYPE_WILLMSG      ||
+				getMsgRequestType() == MQTTSN_TYPE_PINGREQ      ||
+				getMsgRequestType() == MQTTSN_TYPE_PUBLISH      ||
+				getMsgRequestType() == MQTTSN_TYPE_REGISTER     ||
+				getMsgRequestType() == MQTTSN_TYPE_SUBSCRIBE    ||
+				getMsgRequestType() == MQTTSN_TYPE_CONNECT      ||
+				getMsgRequestType() == MQTTSN_TYPE_UNSUBSCRIBE  ||
+				getMsgRequestType() == MQTTSN_TYPE_PUBREC       ||
+				getMsgRequestType() == MQTTSN_TYPE_PUBREL){
+					_clientStatus.init();
+					clearMsgRequest();
 			}
         }else if(rc == MQTTSN_ERR_REBOOT_REQUIRED){
 			_clientStatus.init();
+			clearMsgRequest();
 		}else{
 			continue;
 		}
-		clearMsgRequest();
 		break;
 	}
 
@@ -460,6 +463,7 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
         while(!_respTimer.isTimeUp()){
             if (getMsgRequestType() == MQTTSN_TYPE_PUBACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_REGACK     ||
+				getMsgRequestType() == MQTTSN_TYPE_PUBCOMP    ||
 				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE ){
                 return MQTTSN_ERR_NO_ERROR;
             }else if(getMsgRequestType() == MQTTSN_TYPE_DISCONNECT ){
@@ -479,20 +483,14 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
 				break;
 			}
 
-            /*---- WILLTOPICREQ or WILLMESSAGEREQ are received ---*/
+            /*---- WILLTOPICREQ ,WILLMESSAGEREQ PUBREC are received ---*/
             if (getMsgRequestStatus() == MQTTSN_MSG_REQUEST &&
                (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC ||
-                getMsgRequestType() == MQTTSN_TYPE_WILLMSG) ){
+                getMsgRequestType() == MQTTSN_TYPE_WILLMSG)  ||
+                getMsgRequestType() == MQTTSN_TYPE_PUBREL){
             	retry = 0;
                 break;
             }
-            /*
-            if (getMsgRequestStatus() == MQTTSN_MSG_REQUEST &&
-			    (getMsgRequestType() == MQTTSN_TYPE_PUBLISH ||
-				 getMsgRequestType() == MQTTSN_TYPE_PUBREL )){
-				retry = 0;
-				break;
-			}*/
 
         }
 		setMsgRequestStatus(MQTTSN_MSG_REQUEST);
@@ -696,6 +694,14 @@ int MqttsnClient::pubAck(uint16_t topicId, uint16_t msgId, uint8_t rc){
     mqttsMsg.setTopicId(topicId);
     mqttsMsg.setMsgId(msgId);
     mqttsMsg.setReturnCode(rc);
+    //return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
+    return requestSendMsg((MqttsnMessage*)&mqttsMsg);
+}
+
+/*--------- PUBREC ------*/
+int MqttsnClient::pubRec(uint16_t msgId){
+	MqttsnPubRec mqttsMsg = MqttsnPubRec();
+    mqttsMsg.setMsgId(msgId);
     return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
 }
 
@@ -787,8 +793,10 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 			mqMsg.setFrame(recvMsg);
 			if (mqMsg.getQos() == MQTTSN_FLAG_QOS_1){
 				pubAck(mqMsg.getTopicId(), mqMsg.getMsgId(), MQTTSN_RC_ACCEPTED);
+			}else if(mqMsg.getQos() == MQTTSN_FLAG_QOS_2){
+				pubRec(mqMsg.getMsgId());
 			}
-			_pubHdl.exec(&mqMsg,&_topics);   // Execute Callback routine
+			_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
 			if(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK){
 				*returnCode = MQTTSN_READ_RESP_ONCE_MORE;
 			}
@@ -970,7 +978,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody() + 3)){
 			MqttsnPubRel mqrMsg = MqttsnPubRel();
 			mqrMsg.setMsgId(mqMsg.getMsgId());
-			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
+			requestPrioritySendMsg((MqttsnMessage*)&mqrMsg);
 		}
 
 /*---------  PUBREL  ----------*/
@@ -983,10 +991,12 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		D_MQTTW("\nPUBREL recv\r\n");
 
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
+			clearMsgRequest();  // delete PUBREC
 			MqttsnPubComp mqrMsg = MqttsnPubComp();
 			mqrMsg.setMsgId(mqMsg.getMsgId());
 			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
 		}
+
 /*---------  PUBCOMP  ----------*/
 	}else if (msgType == MQTTSN_TYPE_PUBCOMP &&
 			(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK &&

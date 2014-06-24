@@ -221,6 +221,7 @@ private:
     int  willTopic();
     int  willMsg();
     int  pubAck(uint16_t topicId, uint16_t msgId, uint8_t rc);
+    int  pubRec(uint16_t msgId);
     int  pubRel(uint16_t msgId);
     int  regAck(uint16_t topicId, uint16_t msgId, uint8_t rc);
     int  pubComp(uint16_t msgId);
