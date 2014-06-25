@@ -57,8 +57,8 @@ GatewayControlTask::GatewayControlTask(GatewayResourcesProvider* res){
 	_res->attach(this);
 	_eventQue = 0;
 	_protocol = MQTT_PROTOCOL_VER4;
-	_loginId = 0;
-	_password = 0;
+	_loginId = new string("");
+	_password = new string("");
 }
 
 GatewayControlTask::~GatewayControlTask(){
@@ -594,7 +594,7 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 	mqMsg->setClientId(clnode->getNodeId());
 	mqMsg->setKeepAliveTime(sConnect->getDuration());
 
-	if(_loginId && _password ){
+	if(*_loginId != "" && * _password != ""){
 		mqMsg->setUserName(_loginId);
 		mqMsg->setPassword(_password);
 	}
