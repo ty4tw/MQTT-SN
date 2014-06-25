@@ -84,6 +84,7 @@ Gateway configurations
      =================================*/
     //#define NETWORK_XBEE               <--- comment out for UDP
     #define NETWORK_UDP                  <--- comment out for XBee 
+    //#define NETWORK_XXXXX    
 
     /*=================================
      *    CPU TYPE
@@ -95,8 +96,25 @@ Gateway configurations
      *    Debug LOG
      ==================================*/
     //#define DEBUG_NWSTACK     // show network layer transactions.     
+
+Raspberry Pi SD card img file    
+----------------------    
+Download from https://drive.google.com/a/tomy-tech.com/?tab=mo#folders/0ByWDD8Fur4QcMGpuRWd2RWVtMDA    
+    1) unzip and copy to SD card    
+    2) Root password is root    
+    3) Login ID is "gw" and password is "gw"    
+    4) execute ./TomyGatewayXBee.sh  for XBee    
+               ./TomyGatewayUDP.sh   for UDP
+
     
-  
+How to connect XBee to Raspberry Pi    
+----------------------    
+    XBee Vcc ---> Raspberry Pi  Pin  1    
+    XBee Gnd ---> Raspberry Pi  Pin  6    
+    XBee RX  ---> Raspberry Pi  Pin  8    
+    XBee TX  ---> Raspberry Pi  Pin 10    
+
+
 ###Contact
 
 
