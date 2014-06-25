@@ -206,7 +206,7 @@ char* MultiTaskProcess::getArgv(char option){
 	char arg;
 	_mutex.lock();
 	optind = 1;
-	while((arg = getopt(_argc, _argv, theCmdlineParameter))!= -1){
+	while((arg = getopt(_argc, _argv, theCmdlineParameter))!= -1 && (arg != 255)){
 		if(arg == option){
 			_mutex.unlock();
 			return optarg;

@@ -57,17 +57,12 @@ GatewayControlTask::GatewayControlTask(GatewayResourcesProvider* res){
 	_res->attach(this);
 	_eventQue = 0;
 	_protocol = MQTT_PROTOCOL_VER4;
-	_loginId = new string("");
-	_password = new string("");
+	_loginId = "";
+	_password = "";
 }
 
 GatewayControlTask::~GatewayControlTask(){
-	if(_loginId){
-		delete _loginId;
-	}
-	if(_password){
-		delete _password;
-	}
+
 }
 
 
@@ -81,23 +76,24 @@ void GatewayControlTask::run(){
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_05, "Invalid Gateway Id");  // ABORT
 	}
 
-
-	if(_res->getArgv('l') != 0){
-		_loginId =  new string(_res->getArgv('l'));
-	}
-	if(_res->getArgv('w') != 0){
-		_password = new string( _res->getArgv('w'));
-	}
-
-	_eventQue = _res->getGatewayEventQue();
-
 	int keepAlive = KEEP_ALIVE_TIME;
 	if(_res->getArgv('k') != 0){
 		keepAlive =atoi( _res->getArgv('k'));
 	}
+
+	if(_res->getArgv('l') != 0){
+		_loginId = _res->getArgv('l');
+	}
+	if(_res->getArgv('w') != 0){
+		_password = _res->getArgv('w');
+	}
+
+	_eventQue = _res->getGatewayEventQue();
+
 	advertiseTimer.start(keepAlive * 1000UL);
 
-		printf("%s TomyGateway start\n", currentDateTime());
+	printf("%s TomyGateway start\n", currentDateTime());
+
 
 	while(true){
 
@@ -594,9 +590,9 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 	mqMsg->setClientId(clnode->getNodeId());
 	mqMsg->setKeepAliveTime(sConnect->getDuration());
 
-	if(*_loginId != "" && * _password != ""){
-		mqMsg->setUserName(_loginId);
-		mqMsg->setPassword(_password);
+	if(_loginId != "" && _password != ""){
+		mqMsg->setUserName(&_loginId);
+		mqMsg->setPassword(&_password);
 	}
 	clnode->setConnectMessage(mqMsg);
 
