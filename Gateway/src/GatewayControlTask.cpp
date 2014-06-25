@@ -119,13 +119,13 @@ void GatewayControlTask::run(){
 			if(advertiseTimer.isTimeup()){
 				MQTTSnAdvertise* adv = new MQTTSnAdvertise();
 				adv->setGwId(_gatewayId);
-				adv->setDuration(KEEP_ALIVE_TIME);
+				adv->setDuration(keepAlive);
 				Event* ev1 = new Event();
 				ev1->setEvent(adv);  //broadcast
 				printf(YELLOW_FORMAT2, currentDateTime(), "ADVERTISE", LEFTARROW, GATEWAY, msgPrint(adv));
 
 				_res->getClientSendQue()->post(ev1);
-				advertiseTimer.start(KEEP_ALIVE_TIME * 1000UL);
+				advertiseTimer.start(keepAlive * 1000UL);
 				sendUnixTimer.start(SEND_UNIXTIME_TIME * 1000UL);
 			}
 
