@@ -56,6 +56,8 @@ private:
 	char _printBuf[512];
 	uint8_t _protocol;
 	uint8_t _gatewayId;
+	string* _loginId;
+	string* _password;
 
 	void handleClientMessage(Event*);
 	void handleBrokerMessage(Event*);

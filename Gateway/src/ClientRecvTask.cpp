@@ -102,8 +102,19 @@ void ClientRecvTask::run(){
 
 			if(!clnode){
 				if(resp->getMsgType() == MQTTSN_TYPE_CONNECT){
+
+				#ifdef NETWORK_XBEE
+					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),0);
+				#endif
+				#ifdef NETWORK_UDP
 					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),
-																		 resp->getClientAddress16());
+																	resp->getClientAddress16());
+				#endif
+				#ifdef NETWORK_XXXXX
+					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),
+																	resp->getClientAddress16());
+				#endif
+
 					if(!node){
 						delete ev;
 						printf("Client is not authorized.\n");

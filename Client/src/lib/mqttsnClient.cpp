@@ -486,8 +486,8 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
             /*---- WILLTOPICREQ ,WILLMESSAGEREQ PUBREC are received ---*/
             if (getMsgRequestStatus() == MQTTSN_MSG_REQUEST &&
                (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC ||
-                getMsgRequestType() == MQTTSN_TYPE_WILLMSG)  ||
-                getMsgRequestType() == MQTTSN_TYPE_PUBREL){
+                getMsgRequestType() == MQTTSN_TYPE_WILLMSG  ||
+                getMsgRequestType() == MQTTSN_TYPE_PUBREL)){
             	retry = 0;
                 break;
             }

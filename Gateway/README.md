@@ -47,18 +47,21 @@ Usage
     
 ####3)  Start Gateway  
     Over UDP 
-        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mosqquitto.org  -g 1883   
+        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mosqquitto.org  -g 1883  -l loginId -w 1234       
  
     Over XBee
-        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mosquitto.org -p 1883    
+        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mosquitto.org -p 1883 -l loginId -w 1234     
     
     Usage:  -b: [Baudrate]  (XBee)     
             -d: [Device]    (XBee)          
             -g  [GroupIp]   (UDP)  Multicast IP address   
             -u  [UDPportNo] (UDP)  Unicast to clients port 
-            -i  [GatewayId]     
+            -i  [GatewayId]   
+            -l  [User name]    
+            -w  [Password]    
+            -k  [KeepAlive]      
             -h  [Broker]    
-            -p  [Broker PortNo]  Blocker port and also UDP multicast port 
+            -p  [Broker PortNo]  Blocker port and also UDP multicast port     
 
 XBee configurations
 ----------------------

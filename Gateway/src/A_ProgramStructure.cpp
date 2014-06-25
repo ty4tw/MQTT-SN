@@ -47,10 +47,13 @@
          -g: [groupIp]   (UDP)
          -u: [UDPportNo] (UDP)
          -i: [GatewayId]
+         -k: [KeepAlive]
          -h: [Broker Host]
          -p: [Broker Port]
+         -l: [LoginId]
+         -w: [Password]
  ************************************/
-const char* theCmdlineParameter = "b:d:i:h:p:g:u:";
+const char* theCmdlineParameter = "b:d:i:h:p:g:u:l:w:k:";
 
 /**************************************
  *       Gateway Application
