@@ -99,11 +99,13 @@ Gateway configurations
 
 Raspberry Pi SD card img file    
 ----------------------    
-Download from https://drive.google.com/a/tomy-tech.com/?tab=mo#folders/0ByWDD8Fur4QcMGpuRWd2RWVtMDA    
-    1) unzip and copy to SD card    
-    2) Root password is root    
-    3) Login ID is "gw" and password is "gw"    
-    4) execute ./TomyGatewayXBee.sh  for XBee    
+  
+    1) Download from https://drive.google.com/a/tomy-tech.com/?tab=mo#folders/0ByWDD8Fur4QcMGpuRWd2RWVtMDA    
+    2) unzip and copy to SD card    
+    3) Root password is root    
+    4) Login ID is "gw" and password is "gw"    
+        $ ssh xxx.xxx.xxx.xxx -l gw -p 22022  
+    5) execute ./TomyGatewayXBee.sh  for XBee    
                ./TomyGatewayUDP.sh   for UDP
 
     
