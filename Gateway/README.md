@@ -47,10 +47,10 @@ Usage
     
 ####3)  Start Gateway  
     Over UDP 
-        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mosqquitto.org  -g 1883  -l loginId -w 1234       
+        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mqtt.shiguredo.jp  -g 1883  -l loginId -w 1234       
  
     Over XBee
-        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mosquitto.org -p 1883 -l loginId -w 1234     
+        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mqtt.shiguredo.jp -p 1883 -l loginId -w 1234     
     
     Usage:  -b: [Baudrate]  (XBee)     
             -d: [Device]    (XBee)          
@@ -102,8 +102,8 @@ Raspberry Pi SD card img file
   
     1) Download from https://drive.google.com/a/tomy-tech.com/?tab=mo#folders/0ByWDD8Fur4QcMGpuRWd2RWVtMDA    
     2) unzip and copy to SD card    
-    3) Root password is root    
-    4) Login ID is "gw" and password is "gw"    
+    3) root's password is root    
+    4) Login ID is "gw" and password is "gw".    xxx.xxx... is IP address DHCP assigned.    
         $ ssh xxx.xxx.xxx.xxx -l gw -p 22022  
     5) execute ./TomyGatewayXBee.sh  for XBee    
                ./TomyGatewayUDP.sh   for UDP
