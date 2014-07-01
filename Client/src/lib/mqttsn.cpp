@@ -1045,8 +1045,10 @@ void MqttsnSubscribe::setDup(){
 
 void MqttsnSubscribe::setQos(uint8_t qos){
 	_flags &= 0x9f;
-	if(qos == 1){
+	if(qos == QOS1){
 		_flags |= 0x20;
+	}else if(qos == QOS2){
+		_flags |= 0x40;
 	}
 	setFlags(_flags);
 }

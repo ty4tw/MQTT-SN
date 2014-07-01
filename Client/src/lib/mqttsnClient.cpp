@@ -694,8 +694,8 @@ int MqttsnClient::pubAck(uint16_t topicId, uint16_t msgId, uint8_t rc){
     mqttsMsg.setTopicId(topicId);
     mqttsMsg.setMsgId(msgId);
     mqttsMsg.setReturnCode(rc);
-    //return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
-    return requestSendMsg((MqttsnMessage*)&mqttsMsg);
+    return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
+    //return requestSendMsg((MqttsnMessage*)&mqttsMsg);
 }
 
 /*--------- PUBREC ------*/
@@ -791,12 +791,16 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     		D_MQTTW("PUBLISH recv\r\n");
 			MqttsnPublish mqMsg = MqttsnPublish();
 			mqMsg.setFrame(recvMsg);
+			_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
+
 			if (mqMsg.getQos() == MQTTSN_FLAG_QOS_1){
 				pubAck(mqMsg.getTopicId(), mqMsg.getMsgId(), MQTTSN_RC_ACCEPTED);
+				unicast(MQTTSN_TIME_RETRY);
 			}else if(mqMsg.getQos() == MQTTSN_FLAG_QOS_2){
 				pubRec(mqMsg.getMsgId());
+				unicast(MQTTSN_TIME_RETRY);
 			}
-			_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
+
 			if(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK){
 				*returnCode = MQTTSN_READ_RESP_ONCE_MORE;
 			}

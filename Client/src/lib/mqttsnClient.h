@@ -36,7 +36,11 @@
 #ifndef MQTTSCLIENT_H_
 #define MQTTSCLIENT_H_
 
-#define SENDQ_SIZE    5
+#ifdef LINUX
+		#define SENDQ_SIZE   100
+#else
+		#define SENDQ_SIZE    5
+#endif
 
 #if defined(ARDUINO) && ARDUINO >= 100
         #include "Arduino.h"
