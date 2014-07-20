@@ -1512,7 +1512,7 @@ uint16_t MQTTSubscribe::serialize(uint8_t* buf){
 	_remainLength = _topic.size() + 5; //length:2, Topic:n, QoS:1
 	remLen.encode(_remainLength);
 
-	*buf++ = _type | 0x02;
+	*buf++ = _type | 0x02;   //SUBSCRIBE QoS1
 	remLen.serialize(buf);
 	buf += remLen.getSize();
 	setUint16(buf, _messageId);

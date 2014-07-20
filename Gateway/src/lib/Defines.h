@@ -37,8 +37,8 @@
 /*=================================
  *    Network  Selection
  =================================*/
-//#define NETWORK_XBEE
-#define NETWORK_UDP
+#define NETWORK_XBEE
+//#define NETWORK_UDP
 //#define NETWORK_XXXXX
 
 /*=================================
