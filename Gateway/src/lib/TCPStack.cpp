@@ -65,6 +65,10 @@ bool TCPStack::isValid(){
 		::close(_sockfd);
 		_sockfd = -1;
     	_disconReq = false;
+    	if(_addrinfo){
+			freeaddrinfo(_addrinfo);
+			_addrinfo = 0;
+		}
 		_sem.post();
 	}
 	return false;
