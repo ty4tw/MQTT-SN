@@ -379,7 +379,7 @@ int MqttsnClient::sendRecvMsg(){
 		if(getMsgRequestType() != MQTTSN_TYPE_PINGREQ){
 			pingReq(_clientId);
 		}
-		unicast(MQTTSN_TIME_RETRY);
+		rc = unicast(MQTTSN_TIME_RETRY);
 	}
 	return rc;
 }
