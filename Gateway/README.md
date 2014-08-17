@@ -47,10 +47,10 @@ Usage
     
 ####3)  Start Gateway  
     Over UDP 
-        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mqtt.shiguredo.jp  -g 1883  -l loginId -w 1234       
+        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mosquitto.org  -g 1883         
  
     Over XBee
-        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mqtt.shiguredo.jp -p 1883 -l loginId -w 1234     
+        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mosquitto.org -p 1883       
     
     Usage:  -b: [Baudrate]  (XBee)     
             -d: [Device]    (XBee)          
