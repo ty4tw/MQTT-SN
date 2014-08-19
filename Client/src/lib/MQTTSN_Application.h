@@ -52,8 +52,8 @@
 
 
 /*-------- Select Network  -------------*/
-//#define NETWORK_XBEE
-#define NETWORK_UDP
+#define NETWORK_XBEE
+//#define NETWORK_UDP
 
 
 /*--- XBee Buffer Flow Control --*/
@@ -64,8 +64,8 @@
 /*======================================
  *         Debug Flag
  ======================================*/
-//#define NW_DEBUG
-//#define MQTTSN_DEBUG
+#define NW_DEBUG
+#define MQTTSN_DEBUG
 
 
 /****************************************
@@ -157,7 +157,7 @@ typedef struct {
 #define SUBSCRIBE(...)   theApplication->subscribe(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theApplication->unsubscribe(__VA_ARGS__)
 #define DISCONNECT()     theApplication->disconnect()
-
+#define SETRETAIN(...)   theApplication->setRetain(__VA_ARGS__)
 
 /*======================================
       MACROs for debugging

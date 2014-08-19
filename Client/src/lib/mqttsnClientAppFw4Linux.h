@@ -94,6 +94,7 @@ public:
 	int subscribe(uint16_t predefinedId, TopicCallback callback, uint8_t qos = 1);
 	int unsubscribe(MQString* topic);
 	int disconnect(uint16_t duration);
+	void setRetain(bool flag);
 
 	void addTask();
 	void startWdt();

@@ -258,7 +258,9 @@ int MqttsnClientApplication::disconnect(uint16_t duration){
     return _mqttsn.disconnect(duration);
 }
 
-
+void MqttsnClientApplication::setRetain(bool flag){
+    _mqttsn.setRetain(flag);
+}
 
 
 
