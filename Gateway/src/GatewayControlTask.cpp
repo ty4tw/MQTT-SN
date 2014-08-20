@@ -79,6 +79,9 @@ void GatewayControlTask::run(){
 	int keepAlive = KEEP_ALIVE_TIME;
 	if(_res->getArgv('k') != 0){
 		keepAlive =atoi( _res->getArgv('k'));
+		if (keepAlive > 65536){
+				THROW_EXCEPTION(ExFatal, ERRNO_SYS_06, "KeepAliveTime is grater than 65536 Secs");  // ABORT
+		}
 	}
 
 	if(_res->getArgv('l') != 0){

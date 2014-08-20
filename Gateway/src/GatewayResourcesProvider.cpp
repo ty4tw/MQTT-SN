@@ -206,7 +206,7 @@ void ClientNode::checkTimeover(){
 
 void ClientNode::setKeepAlive(MQTTSnMessage* msg){
 	MQTTSnConnect* cm = static_cast<MQTTSnConnect*>(msg);
-	_keepAliveMsec = cm->getDuration() * 1000;
+	_keepAliveMsec = cm->getDuration() * 1000UL;
 	_keepAliveTimer.start(_keepAliveMsec * 1.5);
 }
 
@@ -234,7 +234,7 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 			MQTTSnDisconnect* dcm = static_cast<MQTTSnDisconnect*>(msg);
 			if(dcm->getDuration()){
 				_status = Cstat_Asleep;
-				_keepAliveMsec = dcm->getDuration() * 1000;
+				_keepAliveMsec = dcm->getDuration() * 1000UL;
 			}else{
 				_status = Cstat_Disconnected;
 			}

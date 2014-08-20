@@ -42,6 +42,7 @@
 #define ERRNO_SYS_03  3   // Socket error
 #define ERRNO_SYS_04  4   // can't create a clientNode.
 #define ERRNO_SYS_05  5   // invalid GatewayId
+#define ERRNO_SYS_06  6   // KeepAliveTime is grater than 65536 Secs
 
 
 #endif /* ERRORMESSAGE_H_ */
