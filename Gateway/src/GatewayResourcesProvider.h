@@ -132,7 +132,7 @@ private:
 	uint8_t _snMsgId;
 	Topics* _topics;
 	ClientStatus _status;
-	uint16_t _keepAliveMsec;
+	uint32_t _keepAliveMsec;
 	Timer _keepAliveTimer;
 
 	TCPStack _socket;
