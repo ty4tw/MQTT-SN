@@ -174,6 +174,7 @@ void GatewayControlTask::run(){
 
 			ClientNode* clnode = ev->getClientNode();
 			MQTTSnMessage* msg = clnode->getClientRecvMessage();
+			clnode->updateStatus(msg);
 			
 			if(msg->getType() == MQTTSN_TYPE_PUBLISH){
 				handleSnPublish(ev, clnode, msg);

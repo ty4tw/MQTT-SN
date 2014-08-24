@@ -182,7 +182,6 @@ void ClientNode::setBrokerRecvMessage(MQTTMessage* msg){
 }
 
 void ClientNode::setClientSendMessage(MQTTSnMessage* msg){
-	updateStatus(msg);
 	_clientSendMessageQue.push(msg);
 
 }

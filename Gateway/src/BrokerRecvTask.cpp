@@ -59,14 +59,15 @@ BrokerRecvTask::~BrokerRecvTask(){
 void BrokerRecvTask::run(){
 
 	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 500000;    // 500 msec
+
 
 	ClientList* clist = _res->getClientList();
 	fd_set readfds;
 	int sockfd;
 
 	while(true){
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 500000;    // 500 msec
 		FD_ZERO(&readfds);
 		int maxSock = 0;
 
