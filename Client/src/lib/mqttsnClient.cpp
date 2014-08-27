@@ -457,6 +457,7 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
         _clientStatus.setLastSendTime();
 
         _sendQ->getMessage(0)->setDup();
+        uint8_t qos = _sendQ->getMessage(0)->getQos();
         _respTimer.start(packetReadTimeout * 1000UL);
         setMsgRequestStatus(MQTTSN_MSG_WAIT_ACK);
 
@@ -464,7 +465,8 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
             if (getMsgRequestType() == MQTTSN_TYPE_PUBACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_REGACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBCOMP    ||
-				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE ){
+				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE  ||
+				(getMsgRequestType() == MQTTSN_TYPE_PUBLISH && qos == 0)){
                 return MQTTSN_ERR_NO_ERROR;
             }else if(getMsgRequestType() == MQTTSN_TYPE_DISCONNECT ){
             	_clientStatus.recvDISCONNECT();
