@@ -219,27 +219,30 @@ public:
     bool   allocateBody();
     void   setStatus(uint8_t stat);
     void   setDup();
-    void   setFlag(uint8_t flag);
+    void   setQos(uint8_t qos);
+    void   setRetain(bool flg);
+    void   setFlags(uint8_t flag);
     uint8_t getLength();
     uint8_t getType();
-    uint8_t getFlag();
+    uint8_t getFlags();
     uint8_t getStatus();
     uint8_t getQos();
     uint8_t* getBody();
     uint8_t* getMsgBuff();
     uint16_t getFrameLength();
     uint16_t getBodyLength();
+    bool    isDup();
     bool    copy(MqttsnMessage* src);
     void    reset();
     void    setMsgBuff(uint8_t* buff);
     const char* getMsgTypeName();
 protected:
     uint8_t* _msgBuff;
+    uint8_t  _flags;
 private:
     uint8_t  _status; // 1:request 2:sending 3:resending 4:waitingAck  5:complite
-    uint16_t  _length;
     uint8_t  _type;
-    uint8_t  _flag;
+    uint16_t  _length;
 };
 
 /*=====================================
@@ -290,11 +293,9 @@ class MqttsnConnect : public MqttsnMessage {
 public:
     MqttsnConnect(MQString* id);
     ~MqttsnConnect();
-    void setFlags(uint8_t flg);
     void setDuration(uint16_t msec);
     void setClientId(MQString* id);
     uint8_t* getClientId();
-    uint8_t getFlags();
     uint16_t getDuration();
     void setFrame(uint8_t* data, uint8_t len);
 private:
@@ -333,14 +334,11 @@ class MqttsnWillTopic : public MqttsnMessage  {
 public:
     MqttsnWillTopic();
     ~MqttsnWillTopic();
-    void setFlags(uint8_t flags);
     void setWillTopic(MQString* topic);
     MQString* getWillTopic();
-    uint8_t getQos();
     bool isWillRequired();
 
 private:
-    uint8_t _flags;
     MQString _ustring;
  };
 
@@ -418,12 +416,9 @@ class MqttsnPublish : public MqttsnMessage  {
 public:
     MqttsnPublish();
     ~MqttsnPublish();
-    void setFlags(uint8_t flags);
     void setTopicId(uint16_t id);
     void setTopic(MQString* topic);
     void setMsgId(uint16_t msgId);
-    void setDup();
-    void setQos(uint8_t qos);
     void setData(uint8_t* data, uint16_t len);
     void setData(MQString* str);
     void setFrame(uint8_t* data, uint16_t len);
@@ -431,16 +426,11 @@ public:
     MQString* getTopic(MQString* topic);
     uint16_t getMsgId();
     uint16_t getTopicId();
-    uint8_t  getTopicType();
-    uint8_t  getQos();
-    uint8_t  getFlags();
-    bool isRetain();
 
     uint8_t* getData();
     uint16_t getDataLength();
 
 private:
-    uint8_t _flags;
     uint16_t _topicId;
     uint16_t _msgId;
     MQString* _topic;
@@ -508,22 +498,16 @@ class MqttsnSubscribe : public MqttsnMessage  {
 public:
     MqttsnSubscribe();
     ~MqttsnSubscribe();
-    void setFlags(uint8_t flags);
-    void setDup();
-    void setQos(uint8_t qos);
-    uint8_t getFlags();
     void setMsgId(uint16_t msgId);
     uint16_t getMsgId();
     uint16_t getTopicId();
-	uint8_t  getQos();
-    void setTopicName(MQString* topicName);
     MQString* getTopicName();
     void setTopicId(uint16_t predefinedId);
-        void setFrame(uint8_t* data, uint8_t len);
-        void setFrame(NWResponse* resp);
+	void setFrame(uint8_t* data, uint8_t len);
+	void setFrame(NWResponse* resp);
+    void setTopicName(MQString* topicName);
 protected:
     uint16_t _topicId;
-    uint8_t  _flags;
     uint16_t _msgId;
     MQString _ustring;
  };
@@ -535,9 +519,6 @@ class MqttsnSubAck : public MqttsnMessage  {
 public:
     MqttsnSubAck();
     ~MqttsnSubAck();
-    void setFlags(uint8_t flags);
-    uint8_t getFlags();
-    uint8_t getQos();
     void setMsgId(uint16_t msgId);
     uint16_t getMsgId();
     void setTopicId(uint16_t topicId);
@@ -556,8 +537,6 @@ class MqttsnUnsubscribe : public MqttsnSubscribe  {
 public:
     MqttsnUnsubscribe();
     ~MqttsnUnsubscribe();
-    void setFlags(uint8_t flags);
-    void setTopicName(MQString* data);
 private:
 
  };
@@ -583,7 +562,6 @@ class MqttsnPingReq : public MqttsnMessage  {
 public:
     MqttsnPingReq(MQString* id);
     ~MqttsnPingReq();
-    //void setClientId(MQString* id);
     char* getClientId();
 private:
 

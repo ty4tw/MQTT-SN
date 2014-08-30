@@ -250,7 +250,8 @@ void MQString::freeStr(){
         Class MqttsnMessage
  ======================================*/
 MqttsnMessage::MqttsnMessage(){
-    _msgBuff = 0;
+    _msgBuff = 0;    _flags = 0;
+    _flags = 0;
     _length = 0;
     _status = 0;
     _type = 0;
@@ -279,8 +280,8 @@ void MqttsnMessage::setType(uint8_t type){
     }
 }
 
-void MqttsnMessage::setFlag(uint8_t flg){
-    _flag = flg;
+void MqttsnMessage::setFlags(uint8_t flg){
+    _flags = flg;
     if ( _msgBuff != 0){
     	if(_length > 255){
     		_msgBuff[4] = flg;
@@ -300,6 +301,16 @@ void MqttsnMessage::setLength(uint16_t length){
 			 _msgBuff[0] = length;
 		}
     }
+}
+
+void MqttsnMessage::setQos(uint8_t qos){
+	_flags &= 0x9f;
+	if(qos == QOS1){
+		_flags |= 0x20;
+	}else if(qos == QOS2){
+		_flags |= 0x40;
+	}
+	setFlags(_flags);
 }
 
 bool MqttsnMessage::setBody(uint8_t* body){
@@ -332,11 +343,11 @@ bool MqttsnMessage::allocateBody(){
         		_msgBuff[0] = 0x01;
         		setUint16(_msgBuff + 1, _length);
         		_msgBuff[3] = _type;
-                _msgBuff[4] = _flag;
+                _msgBuff[4] = _flags;
         	}else{
 				_msgBuff[0] = _length;
 				_msgBuff[1] = _type;
-		        _msgBuff[2] = _flag;
+		        _msgBuff[2] = _flags;
         	}
             return true;
         }else{
@@ -349,7 +360,8 @@ bool MqttsnMessage::allocateBody(){
 
 void MqttsnMessage::setDup(){
 	if(_msgBuff && (_type == MQTTSN_TYPE_PUBLISH || _type == MQTTSN_TYPE_SUBSCRIBE)){
-		_flag |= 0x80;
+		_flags |= 0x80;
+		getBody()[0] = _flags ;
 	}
 }
 
@@ -358,7 +370,7 @@ void MqttsnMessage::setStatus(uint8_t stat){
 }
 
 uint8_t MqttsnMessage::getQos(){
-    return _flag & 0x60;
+    return (_flags & (MQTTSN_FLAG_QOS_1 | MQTTSN_FLAG_QOS_2)) >> 5;
 }
 
 uint8_t MqttsnMessage::getLength(){
@@ -369,8 +381,8 @@ uint8_t MqttsnMessage::getType(){
     return _type;
 }
 
-uint8_t MqttsnMessage::getFlag(){
-    return _flag;
+uint8_t MqttsnMessage::getFlags(){
+    return _flags;
 }
 
 uint8_t MqttsnMessage::getStatus(){
@@ -408,7 +420,7 @@ void MqttsnMessage::setMsgBuff(uint8_t* msgBuff){
 bool MqttsnMessage::copy(MqttsnMessage* src){
     setLength(src->getLength());
     setType(src->getType());
-    setFlag(src->getFlag());
+    setFlags(src->getFlags());
     setStatus(src->getStatus());
     _msgBuff = src->_msgBuff;
     src->setMsgBuff(0);
@@ -527,7 +539,7 @@ uint8_t MqttsnSearchGw::getRadius(){
 /*=====================================
         Class MqttsnGwinfo
  ======================================*/
-MqttsnGwInfo::MqttsnGwInfo(){
+MqttsnGwInfo::MqttsnGwInfo():MqttsnMessage(){
   setLength(3);
   setType(MQTTSN_TYPE_GWINFO);
   allocateBody();
@@ -548,7 +560,7 @@ void MqttsnGwInfo::setGwId(uint8_t id){
 /*=====================================
          Class MqttsnConnect
   ======================================*/
-MqttsnConnect::MqttsnConnect(MQString* id){
+MqttsnConnect::MqttsnConnect(MQString* id):MqttsnMessage(){
     setLength(id->getCharLength() + 6);
     allocateBody();
     setType(MQTTSN_TYPE_CONNECT);
@@ -558,14 +570,6 @@ MqttsnConnect::MqttsnConnect(MQString* id){
 
 MqttsnConnect::~MqttsnConnect(){
 
-}
-
-void MqttsnConnect::setFlags(uint8_t flg){
-    getBody()[0] = flg & 0x0c;
-}
-
-uint8_t MqttsnConnect::getFlags(){
-    return getBody()[0];
 }
 
 void MqttsnConnect::setDuration(uint16_t msec){
@@ -596,7 +600,7 @@ void MqttsnConnect::setFrame(uint8_t* data, uint8_t len){
 /*=====================================
         Class MqttsnConnack
  ======================================*/
-MqttsnConnack::MqttsnConnack(){
+MqttsnConnack::MqttsnConnack():MqttsnMessage(){
     setLength(3);
     setType(MQTTSN_TYPE_CONNACK);
     allocateBody();
@@ -617,7 +621,7 @@ uint8_t MqttsnConnack::getReturnCode(){
 /*=====================================
        Class MqttsnWillTopicReq
 ======================================*/
-MqttsnWillTopicReq::MqttsnWillTopicReq(){
+MqttsnWillTopicReq::MqttsnWillTopicReq():MqttsnMessage(){
     setLength(2);
     setType(MQTTSN_TYPE_WILLTOPICREQ);
     allocateBody();
@@ -630,7 +634,7 @@ MqttsnWillTopicReq::~MqttsnWillTopicReq(){
 /*=====================================
          Class MqttsnWillTopic
   ======================================*/
-MqttsnWillTopic::MqttsnWillTopic(){
+MqttsnWillTopic::MqttsnWillTopic():MqttsnMessage(){
     setLength(3);
     setType(MQTTSN_TYPE_WILLTOPIC);
     allocateBody();
@@ -641,13 +645,6 @@ MqttsnWillTopic::~MqttsnWillTopic(){
 
 }
 
-void MqttsnWillTopic::setFlags(uint8_t flags){
-    flags |= 0x70;
-    if (_msgBuff){
-            getBody()[0] = flags;
-    }
-    _flags = flags;
-}
 
 void MqttsnWillTopic::setWillTopic(MQString* topic){
     setLength(topic->getCharLength() + 3);
@@ -669,14 +666,10 @@ bool MqttsnWillTopic::isWillRequired(){
     return getBody()[0] && MQTTSN_FLAG_WILL;
 }
 
-uint8_t MqttsnWillTopic::getQos(){
-    return _flags && (MQTTSN_FLAG_QOS_1 | MQTTSN_FLAG_QOS_2);
-}
-
 /*=====================================
          Class MqttsnWillMsgReq
   ======================================*/
-MqttsnWillMsgReq::MqttsnWillMsgReq(){
+MqttsnWillMsgReq::MqttsnWillMsgReq():MqttsnMessage(){
     setLength(2);
     setType(MQTTSN_TYPE_WILLMSGREQ);
     allocateBody();
@@ -690,7 +683,7 @@ MqttsnWillMsgReq::~MqttsnWillMsgReq(){
 /*=====================================
          Class MqttsnWillMsg
   ======================================*/
-MqttsnWillMsg::MqttsnWillMsg(){
+MqttsnWillMsg::MqttsnWillMsg():MqttsnMessage(){
     setLength(2);
     setType(MQTTSN_TYPE_WILLMSG);
     allocateBody();
@@ -717,7 +710,7 @@ char* MqttsnWillMsg::getWillMsg(){
 /*=====================================
          Class MqttsnRegister
   ======================================*/
-MqttsnRegister::MqttsnRegister(){
+MqttsnRegister::MqttsnRegister():MqttsnMessage(){
     setLength(6);
     setType(MQTTSN_TYPE_REGISTER);
     allocateBody();
@@ -776,7 +769,7 @@ MQString* MqttsnRegister::getTopicName(){
 /*=====================================
          Class MqttsnRegAck
   ======================================*/
-MqttsnRegAck::MqttsnRegAck(){
+MqttsnRegAck::MqttsnRegAck():MqttsnMessage(){
     setLength(7);
     setType(MQTTSN_TYPE_REGACK);
     allocateBody();
@@ -806,56 +799,17 @@ uint8_t MqttsnRegAck::getReturnCode(){
 /*=====================================
          Class MqttsnPublish
   ======================================*/
-MqttsnPublish::MqttsnPublish(){
+MqttsnPublish::MqttsnPublish():MqttsnMessage(){
     setLength(7);
     setType(MQTTSN_TYPE_PUBLISH);
     allocateBody();
     _topicId = 0;
     _topic = 0;
     _msgId = 0;
-    _flags = 0;
-    setQos(1);
 }
 
 MqttsnPublish::~MqttsnPublish(){
 
-}
-
-void MqttsnPublish::setFlags(uint8_t flags){
-    _flags = flags & 0xf3;
-    getBody()[0] = _flags ;
-}
-
-void MqttsnPublish::setDup(){
-	_flags |= 0x80;
-	getBody()[0] = _flags ;
-}
-
-uint8_t MqttsnPublish::getFlags(){
-    return _flags;
-}
-
-uint8_t MqttsnPublish::getTopicType(){
-    return _flags & MQTTSN_TOPIC_TYPE;
-}
-
-bool MqttsnPublish::isRetain(){
-    return _flags && MQTTSN_FLAG_RETAIN;
-}
-
-uint8_t MqttsnPublish::getQos(){
-    return _flags & (MQTTSN_FLAG_QOS_1 | MQTTSN_FLAG_QOS_2);
-}
-
-void MqttsnPublish::setQos(uint8_t qos){
-	if(qos == QOS1){
-		_flags |= 0x20;
-	}else if(qos == QOS2){
-		_flags |= 0x40;
-	}else{
-		_flags &= 0x9f;
-	}
-	getBody()[0] = _flags ;
 }
 
 void MqttsnPublish::setTopicId(uint16_t id){
@@ -901,7 +855,6 @@ void MqttsnPublish::setData(uint8_t* data, uint16_t len){
     memcpy(getBody() + 5, data, len);
     setTopicId(_topicId);
     setMsgId(_msgId);
-    setFlags(_flags);
 }
 
 void MqttsnPublish::setData(MQString* str){
@@ -909,7 +862,6 @@ void MqttsnPublish::setData(MQString* str){
 	allocateBody();
 	setTopicId(_topicId);
 	setMsgId(_msgId);
-	setFlags(_flags);
 	str->writeBuf(getBody() + 5);
 }
 
@@ -934,7 +886,6 @@ void MqttsnPublish::setFrame(uint8_t* data, uint16_t len){
     _flags = *data;
 }
 
-
 void MqttsnPublish::setFrame(NWResponse* resp){
 	setFrame(resp->getBody(), resp->getBodyLength());
 }
@@ -942,7 +893,7 @@ void MqttsnPublish::setFrame(NWResponse* resp){
 /*=====================================
          Class MqttsnPubAck
  ======================================*/
-MqttsnPubAck::MqttsnPubAck(){
+MqttsnPubAck::MqttsnPubAck():MqttsnMessage(){
     setLength(7);
     setType(MQTTSN_TYPE_PUBACK);
     allocateBody();
@@ -1031,36 +982,6 @@ MqttsnSubscribe::~MqttsnSubscribe(){
 
 }
 
-void MqttsnSubscribe::setFlags(uint8_t flags){
-    _flags = flags & 0xe3;
-    if (_msgBuff){
-              getBody()[0] = _flags;
-      }
-}
-
-void MqttsnSubscribe::setDup(){
-    _flags |= 0x80;
-    getBody()[0] = _flags;
-}
-
-void MqttsnSubscribe::setQos(uint8_t qos){
-	_flags &= 0x9f;
-	if(qos == QOS1){
-		_flags |= 0x20;
-	}else if(qos == QOS2){
-		_flags |= 0x40;
-	}
-	setFlags(_flags);
-}
-
-uint8_t MqttsnSubscribe::getFlags(){
-    return _flags;
-}
-
-uint8_t MqttsnSubscribe::getQos(){
-    return _flags & (MQTTSN_FLAG_QOS_1 | MQTTSN_FLAG_QOS_2);
-}
-
 void MqttsnSubscribe::setTopicId(uint16_t predefinedId){
     setLength(7);
     allocateBody();
@@ -1125,7 +1046,7 @@ void MqttsnSubscribe::setFrame(NWResponse* resp){
 /*=====================================
          Class MqttsnSubAck
   ======================================*/
-MqttsnSubAck::MqttsnSubAck(){
+MqttsnSubAck::MqttsnSubAck():MqttsnMessage(){
     setLength(8);
     setType(MQTTSN_TYPE_SUBACK);
     allocateBody();
@@ -1133,18 +1054,6 @@ MqttsnSubAck::MqttsnSubAck(){
 
 MqttsnSubAck::~MqttsnSubAck(){
 
-}
-
-void MqttsnSubAck::setFlags(uint8_t flags){
-    getBody()[0] = flags & 0x60;
-}
-
-uint8_t MqttsnSubAck::getFlags(){
-    return getBody()[0];
-}
-
-uint8_t MqttsnSubAck::getQos(){
-    return getBody()[0] & (MQTTSN_FLAG_QOS_1 | MQTTSN_FLAG_QOS_2);
 }
 
 void MqttsnSubAck::setTopicId(uint16_t id){
@@ -1178,25 +1087,11 @@ MqttsnUnsubscribe::MqttsnUnsubscribe() : MqttsnSubscribe(){
 MqttsnUnsubscribe::~MqttsnUnsubscribe(){
 
 }
-void MqttsnUnsubscribe::setFlags(uint8_t flags){
-  if (_msgBuff){
-              getBody()[0] = flags & 0x03;
-    }
-}
-
-void MqttsnUnsubscribe::setTopicName(MQString* data){
-    setLength(5 + data->getCharLength());
-    allocateBody();
-    data->writeBuf(getBody() + 3);
-    setMsgId(_msgId);
-    setFlags((_flags & 0xe0) | MQTTSN_TOPIC_TYPE_NORMAL);
-    _ustring.copy(data);
-}
 
 /*=====================================
          Class MqttsnUnSubAck
   ======================================*/
-MqttsnUnSubAck::MqttsnUnSubAck(){
+MqttsnUnSubAck::MqttsnUnSubAck():MqttsnMessage(){
     setLength(4);
     setType(MQTTSN_TYPE_UNSUBACK);
     allocateBody();
@@ -1217,7 +1112,7 @@ uint16_t MqttsnUnSubAck::getMsgId(){
 /*=====================================
         Class MqttsnPingReq
  ======================================*/
-MqttsnPingReq::MqttsnPingReq(MQString* id){
+MqttsnPingReq::MqttsnPingReq(MQString* id):MqttsnMessage(){
   setLength(id->getCharLength() + 2);
   setType(MQTTSN_TYPE_PINGREQ);
   allocateBody();
@@ -1235,7 +1130,7 @@ char* MqttsnPingReq::getClientId(){
 /*=====================================
         Class MqttsnPingResp
  ======================================*/
-MqttsnPingResp::MqttsnPingResp(){
+MqttsnPingResp::MqttsnPingResp():MqttsnMessage(){
     setLength(2);
     setType(MQTTSN_TYPE_PINGRESP);
     allocateBody();
@@ -1247,7 +1142,7 @@ MqttsnPingResp::~MqttsnPingResp(){
  /*=====================================
          Class MqttsnDisconnect
   ======================================*/
-MqttsnDisconnect::MqttsnDisconnect(){
+MqttsnDisconnect::MqttsnDisconnect():MqttsnMessage(){
     setLength(4);
     setType(MQTTSN_TYPE_DISCONNECT);
     allocateBody();

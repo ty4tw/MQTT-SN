@@ -241,7 +241,7 @@ void MqttsnClient::delayTime(uint16_t maxTime){
     XTimer delayTimer;
     delayTimer.start(tm);
     while(!delayTimer.isTimeUp()){
-       // _zbee->readPacket();
+       _network->readPacket();
     }
 }
 
@@ -277,23 +277,21 @@ int MqttsnClient::requestPrioritySendMsg(MqttsnMessage* mqttsMsgPtr){
 int MqttsnClient::exec(){
     int rc;
 
+    if (!_clientStatus.isGatewayAlive()){
+		D_MQTTW("Gateway is Dead.\r\n");
+		_clientStatus.init();
+	}
+
     if(_sendFlg){
     	return MQTTSN_ERR_NO_ERROR;
     }else{
     	_sendFlg = true;
     }
 
-    if (!_clientStatus.isGatewayAlive()){
-		D_MQTTW("Gateway is Dead.\r\n");
-		_clientStatus.init();
-	}
-
     while(true){
         rc = sendRecvMsg();
 
-        if(rc == MQTTSN_ERR_NO_ERROR || rc == MQTTSN_ERR_INVALID_TOPICID){
-    		clearMsgRequest();
-        }else if (rc == MQTTSN_ERR_RETRY_OVER){
+        if (rc == MQTTSN_ERR_RETRY_OVER){
 			if( getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC    ||
 			    getMsgRequestType() == MQTTSN_TYPE_WILLMSG      ||
 				getMsgRequestType() == MQTTSN_TYPE_PINGREQ      ||
@@ -303,14 +301,14 @@ int MqttsnClient::exec(){
 				getMsgRequestType() == MQTTSN_TYPE_CONNECT      ||
 				getMsgRequestType() == MQTTSN_TYPE_UNSUBSCRIBE  ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBREC       ||
-				getMsgRequestType() == MQTTSN_TYPE_PUBREL){
-					_clientStatus.init();
-					clearMsgRequest();
+				getMsgRequestType() == MQTTSN_TYPE_PUBREL) {
+				_clientStatus.init();
+				//clearMsgRequest();
 			}
         }else if(rc == MQTTSN_ERR_REBOOT_REQUIRED){
 			_clientStatus.init();
-			clearMsgRequest();
-		}else{
+			//clearMsgRequest();
+		}else if(rc != MQTTSN_ERR_NO_ERROR && rc != MQTTSN_ERR_INVALID_TOPICID){
 			continue;
 		}
 		break;
@@ -325,6 +323,11 @@ int MqttsnClient::exec(){
  ==============================*/
 int MqttsnClient::sendRecvMsg(){
     int rc = MQTTSN_ERR_NO_ERROR;
+
+    if (!_clientStatus.isGatewayAlive()){
+		D_MQTTW("Gateway is Dead.\r\n");
+		_clientStatus.init();
+	}
 
 	/*======= Establish Connection ===========*/
 	if (_clientStatus.isLost() ||_clientStatus.isSearching() ){
@@ -397,24 +400,18 @@ int MqttsnClient::broadcast(uint16_t packetReadTimeout){
 		D_MQTTF("%s\r\n", _sendQ->getMessage(0)->getMsgTypeName());
 
         _respTimer.start(packetReadTimeout * 1000);
-
-        if (getMsgRequestType() == MQTTSN_TYPE_PUBLISH &&
-        		_sendQ->getMessage(0)->getQos() == 0){
-		   clearMsgRequest();
-		   return MQTTSN_ERR_NO_ERROR;
-        }
         setMsgRequestStatus(MQTTSN_MSG_WAIT_ACK);
 
         while(!_respTimer.isTimeUp()){
-			if (getMsgRequestStatus() == MQTTSN_MSG_COMPLETE){
-			    clearMsgRequest();
-			    return MQTTSN_ERR_NO_ERROR;
-			}else if(getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
-			    return MQTTSN_ERR_REBOOT_REQUIRED;
-			}
-			if(_network->readPacket() != 0){
-				break;
-			}
+        	if(_network->readPacket() != PACKET_ERROR_NODATA){
+				if (getMsgRequestStatus() == MQTTSN_MSG_COMPLETE){
+					clearMsgRequest();
+					return MQTTSN_ERR_NO_ERROR;
+				}else if(getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
+					clearMsgRequest();
+					return MQTTSN_ERR_REBOOT_REQUIRED;
+				}
+        	}
         }
         setMsgRequestStatus(MQTTSN_MSG_REQUEST);
         retry++;
@@ -457,21 +454,24 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
         _clientStatus.setLastSendTime();
 
         _sendQ->getMessage(0)->setDup();
-        uint8_t qos = _sendQ->getMessage(0)->getQos();
         _respTimer.start(packetReadTimeout * 1000UL);
         setMsgRequestStatus(MQTTSN_MSG_WAIT_ACK);
 
         while(!_respTimer.isTimeUp()){
-            if (getMsgRequestType() == MQTTSN_TYPE_PUBACK     ||
+            if ((getMsgRequestType() == MQTTSN_TYPE_PUBLISH &&
+            		  _sendQ->getMessage(0)->getQos() == 0 )  ||
+            	getMsgRequestType() == MQTTSN_TYPE_PUBACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_REGACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBCOMP    ||
-				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE  ||
-				(getMsgRequestType() == MQTTSN_TYPE_PUBLISH && qos == 0)){
+				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE ){
+            	clearMsgRequest();
                 return MQTTSN_ERR_NO_ERROR;
             }else if(getMsgRequestType() == MQTTSN_TYPE_DISCONNECT ){
             	_clientStatus.recvDISCONNECT();
+            	clearMsgRequest();
 				return MQTTSN_ERR_NO_ERROR;
         	}else if (getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
+        		clearMsgRequest();
 				return MQTTSN_ERR_REJECTED;
             }
             /*----- Read response  ----*/
@@ -480,6 +480,7 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
 				rc = _network->readPacket();
 			}
             if(rc == MQTTSN_ERR_INVALID_TOPICID){
+            	clearMsgRequest();
             	return rc;
             }else if(rc == PACKET_MODEM_STATUS ){
 				break;
@@ -741,11 +742,12 @@ int  MqttsnClient::pingReq(MQString* clientId){
  =====================================================*/
 void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 	uint8_t msgType = recvMsg->getType();
-    if ( _clientStatus.isSearching() && (msgType != MQTTSN_TYPE_GWINFO)){
+    if ( (_clientStatus.isSearching() && msgType != MQTTSN_TYPE_GWINFO) ||
+    	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH )){    printf("RecvData Rejected\n");  //  DEBUG
         *returnCode = MQTTSN_ERR_NO_ERROR;
 
 /*---------  GWINFO  ----------*/
-	}else if (msgType == MQTTSN_TYPE_GWINFO){
+	}else if (msgType == MQTTSN_TYPE_GWINFO && recvMsg->getPayloadLength() == 3){
 		D_MQTTW("GWINFO recv\r\n");
 		MqttsnGwInfo mqMsg = MqttsnGwInfo();
 		copyMsg(&mqMsg, recvMsg);
@@ -1037,13 +1039,13 @@ SendQue::~SendQue(){
 
 int SendQue::addRequest(MqttsnMessage* msg){
     if ( _queCnt < _queSize){
-    	/*
+
 		D_MQTTW("\nAdd SendQue size = ");
 		D_MQTT(_queCnt + 1, DEC);
 		D_MQTT(" Msg = 0x");
 		D_MQTTLN(msg->getType(), HEX);
 		D_MQTTF("%d  Msg = 0x%x\r\n", _queCnt + 1, msg->getType());
-		*/
+
         _msg[_queCnt] =new MqttsnMessage();
         _msg[_queCnt++]->copy(msg);
         return _queCnt - 1;
@@ -1055,27 +1057,27 @@ int SendQue::addPriorityRequest(MqttsnMessage* msg){
     if ( _queCnt < _queSize){
 	_queCnt++;
     }
-    /*
+
 	D_MQTTW("\nAdd SendQue Top Size = ");
 	D_MQTT(_queCnt, DEC);
 	D_MQTT("  Msg = 0x");
 	D_MQTTLN(msg->getType(), HEX);
 	D_MQTTF("%d  Msg = 0x%x", _queCnt, msg->getType());
-	*/
+
     for(int i = _queCnt-1; i > 0; i--){
         _msg[i] = _msg[i - 1];
     }
     _msg[0] = new MqttsnMessage();
     _msg[0]->copy(msg);
 
-    	/*
+
         for(int i = 1; i < _queCnt; i++){
      	    D_MQTT( "  Msg = 0x");
 			D_MQTT(_msg[i]->getType(), HEX);
 			D_MQTTF("  Msg = 0x%x ", _msg[i]->getType());
         }
         D_MQTTW("\r\n");
-        */
+
     return 0;
 }
 
@@ -1085,21 +1087,21 @@ int SendQue::deleteRequest(uint8_t index){
 
         delete _msg[index];
         _queCnt--;
-        /*
+
     	D_MQTTW("\nDelete SendQue  Size = ");
     	D_MQTT(_queCnt, DEC);
     	D_MQTTF("%d", _queCnt);
-		*/
+
         for(int i = index; i < _queCnt; i++){
             _msg[i] = _msg[i + 1];
-            /*
+
             D_MQTT( "  Msg = 0x");
 			D_MQTT(_msg[i]->getType(), HEX);
 			D_MQTTF("  Msg = 0x%x ", _msg[i]->getType());
-			*/
+
         }
 
-        //D_MQTTW("\r\n");
+        D_MQTTW("\r\n");
         for(int i = _queCnt; i < _queSize; i++){
             _msg[i] = 0;
         }
