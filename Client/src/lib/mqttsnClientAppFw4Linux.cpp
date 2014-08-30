@@ -225,6 +225,7 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);
 	_mqttsn.subscribe();
+	_mqttsn.setSubscribing(false);
 }
 
 void MqttsnClientApplication::addTask(){

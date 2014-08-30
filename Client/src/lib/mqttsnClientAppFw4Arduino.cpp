@@ -169,6 +169,7 @@ void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);  // re-entrant control
 	_mqttsn.subscribe();
     _mqttsn.subscribe(MQTTSN_TOPICID_PREDEFINED_TIME, setUTC,1);
+    _mqttsn.setSubscribing(false);
 }
 
 void MqttsnClientApplication::initialize(APP_CONFIG config){
