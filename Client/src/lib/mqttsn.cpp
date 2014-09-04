@@ -890,6 +890,9 @@ void MqttsnPublish::setFrame(NWResponse* resp){
 	setFrame(resp->getBody(), resp->getBodyLength());
 }
 
+void MqttsnPublish::setPayload(Payload* payload){
+
+}
 /*=====================================
          Class MqttsnPubAck
  ======================================*/
@@ -1357,7 +1360,7 @@ void Topics::addTopic(MQString* topic){
             _elmCnt++;
         }else{
             Topic* saveTopics = _topics;
-            Topic* newTopics = (Topic*)calloc(_sizeMax += MQTTSN_MAX_TOPICS, sizeof(Topic));
+            Topic* newTopics = (Topic*)calloc(_sizeMax += MQTTSN_MAX_TOPICS + 1, sizeof(Topic));
             if (newTopics != 0){
                 _topics = newTopics;
                 for(int i = 0; i < _elmCnt; i++){

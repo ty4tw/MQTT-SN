@@ -52,8 +52,16 @@ using namespace tomyClient;
 MqttsnClientApplication* theApplication = new MqttsnClientApplication();
 
 extern TaskList theTaskList[];
-extern APP_CONFIG    theAppConfig;
 extern void  setup();
+
+#ifdef NETWORK_XBEE
+XBeeAppConfig  theAppConfig = { { 0, 0, 0 },{ 0, 0, false, false, 0, 0 } };
+#endif
+
+#ifdef NETWORK_UDP
+UdpAppConfig   theAppConfig = {{ {0,0,0,0}, 0, {0,0,0,0}, 0, {0,0,0,0,0,0} },{ 0, 0, false, false, 0, 0 } };
+#endif
+
 
 /*========================================
 		main function
@@ -240,6 +248,10 @@ int MqttsnClientApplication::publish(MQString* topic, const char* data, int data
 
 int MqttsnClientApplication::publish(uint16_t predefinedId, const char* data, int dataLength, uint8_t qos){
     return _mqttsn.publish(predefinedId, data, dataLength, qos);
+}
+
+int MqttsnClientApplication::publish(MQString* topic, Payload* payload, uint8_t qos){
+	return _mqttsn.publish(topic, payload, qos);
 }
 
 int MqttsnClientApplication::subscribe(MQString* topic, TopicCallback callback, uint8_t qos){

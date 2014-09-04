@@ -36,9 +36,13 @@
 #ifndef ARDUINO
         #include "MQTTSN_Application.h"
         #include "mqUtil.h"
+		#include "stdio.h"
+		#include "string.h"
 #else
         #include <MQTTSN_Application.h>
         #include <mqUtil.h>
+		#include <stdio.h>
+		#include <string.h>
 #endif  /* ARDUINO */
 
 #ifdef MBED
@@ -81,10 +85,35 @@ void setUint32(uint8_t* pos, uint32_t val){
 	*pos   =  val & 0xff;
 }
 
-#endif
+float getFloat32(uint8_t* pos){
+	union{
+		float flt;
+		uint8_t d[4];
+	}val;
+    val.d[3] = *pos++;
+	val.d[2] = *pos++;
+	val.d[1] = *pos++;
+	val.d[0] = *pos;
+	return val.flt;
+}
+
+void setFloat32(uint8_t* pos, float flt){
+	union{
+		float flt;
+		uint8_t d[4];
+	}val;
+	val.flt = flt;
+    *pos++ = val.d[3];
+    *pos++ = val.d[2];
+    *pos++ = val.d[1];
+    *pos   = val.d[0];
+}
+
+#endif  // CPU_LITTLEENDIANN
 
 /*--- For Big endianness ---*/
 #ifdef CPU_BIGENDIANN
+
 uint16_t getUint16(uint8_t* pos){
   uint16_t val = *pos++;
   return val += ((uint16_t)*pos++ << 8);
@@ -95,7 +124,7 @@ void setUint16(uint8_t* pos, uint16_t val){
 	*pos   = (val >>  8) & 0xff;
 }
 
-long getUint32(uint8_t* pos){
+uint32_t getUint32(uint8_t* pos){
     long val = uint32_t(*(pos + 3)) << 24;
     val += uint32_t(*(pos + 2)) << 16;
 	val += uint32_t(*(pos + 1)) <<  8;
@@ -109,7 +138,32 @@ void setUint32(uint8_t* pos, uint32_t val){
     *pos   = (val >> 24) & 0xff;
 }
 
-#endif
+float getFloat32(uint8_t* pos){
+	union{
+		float flt;
+		uint8_t d[4];
+	}val;
+
+    val.d[0] = *pos++;
+	val.d[1] = *pos++;
+	val.d[2] = *pos++;
+	val.d[3] = *pos;
+	return val.flt;
+}
+
+void setFloat32(uint8_t* pos, float flt){
+	union{
+		float flt;
+		uint8_t d[4];
+	}val;
+	val.flt = flt;
+    *pos++ = val.d[0];
+    *pos++ = val.d[1];
+    *pos++ = val.d[2];
+    *pos   = val.d[3];
+}
+
+#endif  // CPU_BIGENDIANN
 
 /*=========================================
              Class XBeeTimer
@@ -285,9 +339,3 @@ void XTimer::stop(){
 }
 
 #endif
-
-
-
-
-
-

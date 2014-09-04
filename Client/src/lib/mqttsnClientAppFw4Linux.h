@@ -43,6 +43,7 @@
 #include "mqUtil.h"
 
 
+
 #define PUBLISH(...)     theApplication->publish(__VA_ARGS__)
 #define SUBSCRIBE(...)   theApplication->subscribe(__VA_ARGS__)
 #define UNSUBSCRIBE(...) theApplication->unsubscribe(__VA_ARGS__)
@@ -90,6 +91,7 @@ public:
 
 	int publish(MQString* topic, const char* data, int dataLength, uint8_t qos = 1);
 	int publish(uint16_t predefinedId, const char* data, int dataLength, uint8_t qos = 1);
+	int publish(MQString* topic, Payload* payload, uint8_t qos);
 	int subscribe(MQString* topic, TopicCallback callback, uint8_t qos = 1);
 	int subscribe(uint16_t predefinedId, TopicCallback callback, uint8_t qos = 1);
 	int unsubscribe(MQString* topic);

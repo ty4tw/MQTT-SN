@@ -46,23 +46,27 @@
         #include "Arduino.h"
         #include <inttypes.h>
         #include <Network.h>
+		#include <payload.h>
 #endif
 
 #if defined(ARDUINO) && ARDUINO < 100
         #include "WProgram.h"
         #include <inttypes.h>
         #include <Network.h>
+		#include <payload.h>
 #endif
 
 #ifdef LINUX
         #include <sys/time.h>
         #include <iostream>
         #include "Network.h"
+		#include "payload.h"
 #endif
 
 #ifdef MBED
         #include "mbed.h"
         #include "Network.h"
+		#include "payload.h"
 #endif
 
 
@@ -412,6 +416,8 @@ private:
  /*=====================================
          Class MqttsnPublish
   ======================================*/
+class Payload;
+
 class MqttsnPublish : public MqttsnMessage  {
 public:
     MqttsnPublish();
@@ -423,6 +429,7 @@ public:
     void setData(MQString* str);
     void setFrame(uint8_t* data, uint16_t len);
     void setFrame(NWResponse* resp);
+    void setPayload(Payload* payload);
     MQString* getTopic(MQString* topic);
     uint16_t getMsgId();
     uint16_t getTopicId();

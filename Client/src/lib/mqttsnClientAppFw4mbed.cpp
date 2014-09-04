@@ -163,6 +163,11 @@ int MqttsnClientApplication::publish(uint16_t predefinedId, const char* data, in
     return _mqttsn.publish(predefinedId, data, dataLength, qos);
 }
 
+int MqttsnClientApplication::publish(MQString* topic, Payload* payload, uint8_t qos){
+	return _mqttsn.publish(topic, payload, qos);
+}
+
+
 int MqttsnClientApplication::subscribe(MQString* topic, TopicCallback callback, uint8_t qos){
     return _mqttsn.subscribe(topic, callback,qos);
 }

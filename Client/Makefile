@@ -8,7 +8,8 @@ $(SUBDIR)/mqttsn.cpp \
 $(SUBDIR)/mqttsnClient.cpp \
 $(SUBDIR)/zbeeStack.cpp \
 $(SUBDIR)/udpStack.cpp \
-$(SUBDIR)/mqUtil.cpp 
+$(SUBDIR)/mqUtil.cpp \
+$(SUBDIR)/payload.cpp 
 
 CXX := g++
 CPPFLAGS += 

@@ -313,6 +313,10 @@ int MqttsnClientApplication::publish(MQString* topic, const char* data, int data
 	return _mqttsn.publish(topic, data, dataLength, qos);
 }
 
+int MqttsnClientApplication::publish(MQString* topic, Payload* payload, uint8_t qos){
+	return _mqttsn.publish(topic, payload, qos);
+}
+
 int MqttsnClientApplication::subscribe(MQString* topic, TopicCallback callback, uint8_t qos){
     return _mqttsn.subscribe(topic, callback,qos);
 }

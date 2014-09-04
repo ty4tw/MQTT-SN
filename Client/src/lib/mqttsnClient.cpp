@@ -99,7 +99,7 @@ MqttsnClient::MqttsnClient(){
     _willTopic = _willMessage = 0;
     _clientStatus.setKeepAlive(MQTTSN_DEFAULT_KEEPALIVE);
     _msgId = 0;
-    _topics.allocate(MQTTSN_MAX_TOPICS);
+    _topics.allocate(MQTTSN_MAX_TOPICS + 1);
     _sendFlg = false;
     _subscribingFlg = false;
     theMqttsn = this;
@@ -156,7 +156,7 @@ void MqttsnClient::setRetain(bool retain){
 	if(retain){
 		_clientFlg |= MQTTSN_FLAG_RETAIN;
 	}else{
-		_clientFlg ^= MQTTSN_FLAG_RETAIN;
+		_clientFlg &= (~MQTTSN_FLAG_RETAIN);
 	}
 }
 
@@ -570,6 +570,10 @@ int MqttsnClient::publish(MQString* topic, MQString* data, uint8_t qos){
 	return MQTTSN_ERR_NO_DATA;
 }
 
+/*--------- PUBLISH ------*/
+int MqttsnClient::publish(MQString* topic, Payload* payload, uint8_t qos){
+	return publish(topic, (const char*)(payload->getBuf()), payload->getLen(), qos);
+}
 /*--------- PUBLISH ------*/
 int MqttsnClient::publish(uint16_t predefinedId, const char* data, int dataLength, uint8_t qos){
 	MqttsnPublish mqttsMsg = MqttsnPublish();
