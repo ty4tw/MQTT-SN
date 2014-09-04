@@ -747,8 +747,7 @@ int  MqttsnClient::pingReq(MQString* clientId){
 void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 	uint8_t msgType = recvMsg->getType();
     if ( (_clientStatus.isSearching() && msgType != MQTTSN_TYPE_GWINFO) ||
-    	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH )){    printf("RecvData Rejected\n");  //  DEBUG
-        *returnCode = MQTTSN_ERR_NO_ERROR;
+    	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH )){
 
 /*---------  GWINFO  ----------*/
 	}else if (msgType == MQTTSN_TYPE_GWINFO && recvMsg->getPayloadLength() == 3){
