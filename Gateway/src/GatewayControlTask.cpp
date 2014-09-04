@@ -280,10 +280,10 @@ void GatewayControlTask::handleSnPublish(Event* ev, ClientNode* clnode, MQTTSnMe
 
 		mqMsg->setQos(sPublish->getQos());
 
-		if(sPublish->getFlags() && MQTTSN_FLAG_DUP){
+		if(sPublish->getFlags() & MQTTSN_FLAG_DUP){
 			mqMsg->setDup();
 		}
-		if(sPublish->getFlags() && MQTTSN_FLAG_RETAIN){
+		if(sPublish->getFlags() & MQTTSN_FLAG_RETAIN){
 			mqMsg->setRetain();
 		}
 
