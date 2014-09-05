@@ -837,12 +837,10 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     		D_MQTTLN(mqMsg.getMsgId(),DEC);
     		D_MQTTF("%d\r\n", mqMsg.getMsgId());
 
-			//_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
-
-			if (mqMsg.getQos() == MQTTSN_FLAG_QOS_1){
+			if (mqMsg.getQos() == QOS1){
 				pubAck(mqMsg.getTopicId(), mqMsg.getMsgId(), MQTTSN_RC_ACCEPTED);
 				unicast(MQTTSN_TIME_RETRY);
-			}else if(mqMsg.getQos() == MQTTSN_FLAG_QOS_2){
+			}else if(mqMsg.getQos() == QOS2){
 				pubRec(mqMsg.getMsgId());
 				unicast(MQTTSN_TIME_RETRY);
 			}

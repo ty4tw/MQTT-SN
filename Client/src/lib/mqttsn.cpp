@@ -1432,6 +1432,10 @@ void Payload::init(){
 
 
 void Payload::getPayload(MqttsnPublish* msg){
+	if(_memDlt){
+			free(_buff);
+			_memDlt = 0;
+	}
 	_buff = msg->getData();
 	_len = msg->getDataLength();
 	_pos = _buff + _len;
