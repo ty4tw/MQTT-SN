@@ -133,17 +133,14 @@ int task1(){
   return PUBLISH(topic1,&pl,1);
 }
 
-int task2(){
-  return PUBLISH(topic2,"5678", 4,1);
-}
 
 /*---------------  List of task invoked by Timer ------------*/
 
 TASK_LIST = {  //{ MQString* topic, executing duration in second},
            {measure, 40},
            {task1,6},
-           {task2,6},
-END_OF_TASK_LIST};
+END_OF_TASK_LIST
+};
 
 
 /*------------------------------------------------------
@@ -155,24 +152,18 @@ END_OF_TASK_LIST};
  };
  
 int on_publish1(MqttsnPublish* msg){
-    Payload pl;
-    pl.getPayload(msg);
-    PUBLISH(topic3,&pl,1);
-    return 0;
-}
-
-int on_publish2(MqttsnPublish* msg){
-    theApplication->indicatorOff();
-    return 0;
+  Payload pl;
+  pl.getPayload(msg);
+  PUBLISH(topic3,&pl,1);
+  return 0;
 }
 
 /*------------ Link Callback to Topic -------------*/
 
 SUBSCRIBE_LIST = {
-                    {topic1, on_publish1, QOS1},
-                    {topic2, on_publish2, QOS1},
-
-END_OF_SUBSCRIBE_LIST};
+  {topic1, on_publish1, QOS1},  
+  END_OF_SUBSCRIBE_LIST
+};
 
 /*------------------------------------------------------
  *            Tasks invoked by INT0 interuption 
