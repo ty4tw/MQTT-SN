@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifdef LINUX
@@ -42,22 +42,6 @@
 #include "mqttsnClient.h"
 #include "mqUtil.h"
 
-
-
-#define PUBLISH(...)     theApplication->publish(__VA_ARGS__)
-#define SUBSCRIBE(...)   theApplication->subscribe(__VA_ARGS__)
-#define UNSUBSCRIBE(...) theApplication->unsubscribe(__VA_ARGS__)
-#define DISCONNECT()     theApplication->disconnect()
-
-#define TASK_LIST         TaskList theTaskList[]
-#define END_OF_TASK_LIST  {0,0}
-#define SUBSCRIBE_LIST   OnPublishList theOnPublishList[]
-#define END_OF_SUBSCRIBE_LIST {0,0,0}
-
-extern void setUint32(uint8_t*, uint32_t);
-extern uint32_t getUint32(uint8_t*);
-extern void setUint16(uint8_t*, uint16_t);
-extern uint16_t getUint16(uint8_t*);
 
 /*======================================
                Class WdTimer

@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef MATTSNAPPLICATION_H_
@@ -154,7 +154,8 @@ typedef struct {
 #define END_OF_TASK_LIST  {0,0}
 #define SUBSCRIBE_LIST   OnPublishList theOnPublishList[]
 #define END_OF_SUBSCRIBE_LIST {0,0,0}
-
+#define TOPICS_IN_CALLBACK MQString* theTopics[]
+#define END_OF_TOPICS    0
 
 #define PUBLISH(...)     theApplication->publish(__VA_ARGS__)
 #define SUBSCRIBE(...)   theApplication->subscribe(__VA_ARGS__)

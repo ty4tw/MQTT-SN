@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef ARDUINO
@@ -53,6 +53,7 @@ MqttsnClientApplication* theApplication = new MqttsnClientApplication();
 
 extern TaskList theTaskList[];
 extern void  setup();
+extern MQString theTopics[];
 
 #ifdef NETWORK_XBEE
 XBeeAppConfig  theAppConfig = { { 0, 0, 0 },{ 0, 0, false, false, 0, 0 } };
@@ -232,6 +233,7 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 
 void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);
+    _mqttsn.createTopics();
 	_mqttsn.subscribe();
 	_mqttsn.setSubscribing(false);
 }

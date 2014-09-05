@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef MQTTS_H_
@@ -46,27 +46,23 @@
         #include "Arduino.h"
         #include <inttypes.h>
         #include <Network.h>
-		#include <payload.h>
 #endif
 
 #if defined(ARDUINO) && ARDUINO < 100
         #include "WProgram.h"
         #include <inttypes.h>
         #include <Network.h>
-		#include <payload.h>
 #endif
 
 #ifdef LINUX
         #include <sys/time.h>
         #include <iostream>
         #include "Network.h"
-		#include "payload.h"
 #endif
 
 #ifdef MBED
         #include "mbed.h"
         #include "Network.h"
-		#include "payload.h"
 #endif
 
 
@@ -78,7 +74,7 @@
 #define MQTTSN_TIME_WAIT          300     //  5min
 #define MQTTSN_RETRY_COUNT          5
 
-#define MQTTSN_MAX_TOPICS         10
+#define MQTTSN_MAX_TOPICS         15
 #define MQTTSN_MAX_PACKET_LENGTH  60
 
 #define MQTTSN_TYPE_ADVERTISE     0x00
@@ -173,8 +169,21 @@
 #define QOS1  1
 #define QOS2  2
 
-extern uint16_t getUint16(uint8_t* pos);
-extern void setUint16(uint8_t* pos, uint16_t val);
+#define MSGPACK_FALSE    0xc2
+#define MSGPACK_TRUE     0xc3
+#define MSGPACK_POSINT   0x80
+#define MSGPACK_NEGINT   0xe0
+#define MSGPACK_UINT8    0xcc
+#define MSGPACK_UINT16   0xcd
+#define MSGPACK_UINT32   0xce
+#define MSGPACK_INT8     0xd0
+#define MSGPACK_INT16    0xd1
+#define MSGPACK_INT32    0xd2
+#define MSGPACK_FLOAT32  0xca
+#define MSGPACK_FIXSTR   0xa0
+#define MSGPACK_STR8     0xd9
+#define MSGPACK_STR16    0xda
+#define MSGPACK_MAX_ELEMENTS   50   // Less than 256
 
 using namespace tomyClient;
 
@@ -656,6 +665,42 @@ private:
 
 };
 
+/*=====================================
+        Class Payload
+  =====================================*/
+class MqttsnPublish;
+
+class Payload{
+public:
+	Payload();
+	Payload(uint16_t len);
+	~Payload();
+	void init(void);
+	int8_t set_uint32(uint32_t val);
+	int8_t set_int32(int32_t val);
+	int8_t set_float(float val);
+	int8_t set_str(char* val);
+	int8_t set_str(const char* val);
+
+	uint32_t get_uint32(uint8_t index);
+	int32_t  get_int32(uint8_t index);
+    float    get_float(uint8_t index);
+    const char* get_str(uint8_t index, uint16_t* len);
+
+	void 	 getPayload(MqttsnPublish* msg);
+	uint16_t getAvailableLength();
+	uint16_t getLen();
+	uint8_t* getBuf();
+
+	void print();
+private:
+	uint8_t* getBufferPos(uint8_t index);
+	uint8_t* _buff;
+	uint16_t _len;
+	uint8_t  _elmCnt;
+	uint8_t* _pos;
+	uint8_t  _memDlt;
+};
 
 /*=====================================
         Class Publish Handler

@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef ARDUINO
@@ -242,7 +242,7 @@ SerialPort::~SerialPort(){
   }
 }
 
-int SerialPort::open(XBeeConfig config){
+int SerialPort::open(NETWORK_CONFIG config){
   return open(config.device, config.baudrate, false, 1);
 }
 

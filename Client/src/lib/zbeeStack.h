@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef ZBEESTACK_H_
@@ -297,7 +297,7 @@ class SerialPort{
 public:
     SerialPort();
     ~SerialPort();
-    int  open(XBeeConfig  config);
+    int  open(NETWORK_CONFIG  config);
     bool send(unsigned char b);
     bool recv(unsigned char* b);
     bool checkRecvBuf();

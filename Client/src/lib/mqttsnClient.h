@@ -28,16 +28,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef MQTTSCLIENT_H_
 #define MQTTSCLIENT_H_
 
 #ifdef LINUX
-		#define SENDQ_SIZE   100
+		#define SENDQ_SIZE   20
 #else
 		#define SENDQ_SIZE    5
 #endif
@@ -204,6 +204,7 @@ public:
     int  unsubscribe(MQString* topic);
     int  unsubscribe(uint16_t predefinedId);
     int  disconnect(uint16_t duration = 0);
+    void createTopics();
 
     void recieveMessageHandler(NWResponse* msg, int* returnCode);
     void publishHdl(MqttsnPublish* msg);

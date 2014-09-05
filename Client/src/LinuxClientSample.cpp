@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #include "lib/MQTTSN_Application.h"
@@ -48,57 +48,100 @@ using namespace tomyClient;
  *   MQTT-SN Client Application for Linux
  *
  *===========================================*/
-#ifdef NETWORK_XBEE
-XBEE_APP_CONFIG = { { 0, 0, 0 },{ 0, 0, false, false, 0, 0 } };
-#endif
 
-#ifdef NETWORK_UDP
-UDP_APP_CONFIG = {{ {0,0,0,0}, 0, {0,0,0,0}, 0, {0,0,0,0,0,0} },{ 0, 0, false, false, 0, 0 } };
-#endif
-/*==================================================
+/*------------------------------------------------------
  *             Create Topic
- *=================================================*/
-MQString* topic1 = new MQString("dev/indicator");
+ *------------------------------------------------------*/
 
-/*==================================================
+MQString* tp1 = new MQString("topic/01");
+MQString* tp2 = new MQString("topic/02");
+MQString* tp3 = new MQString("topic/03");
+MQString* tp4 = new MQString("topic/04");
+MQString* tp5 = new MQString("topic/05");
+
+MQString* tp_request_01 = new MQString("topic/req/01");
+MQString* tp_response_01 = new MQString("topic/rsp/01");
+
+MQString* tp_request_02 = new MQString("topic/req/02");
+MQString* tp_response_02 = new MQString("topic/rsp/02");
+
+/*------------------------------------------------------
  *             Tasks invoked by Timer
- *=================================================*/
-bool led_flg = false;
+ *------------------------------------------------------*/
 
-int task1(){
-	if(led_flg){
-		PUBLISH(topic1, "off", 3, QOS1);
-		led_flg = false;
-	}else{
-		PUBLISH(topic1, "on", 2, QOS1);
-		led_flg = true;
-	}
-	return 0;
+int f_publish_all(){
+  PUBLISH(tp1,"topic/01", 8,QOS1);
+  PUBLISH(tp2,"topic/02", 8,QOS1);
+  PUBLISH(tp3,"topic/03", 8,QOS1);
+  PUBLISH(tp4,"topic/04", 8,QOS1);
+  PUBLISH(tp5,"topic/05", 8,QOS1);
+
+  Payload pl = Payload(40);
+  pl.set_uint32( 200);
+  pl.set_uint32( 10);
+  pl.set_uint32( 50000);
+  pl.set_uint32( 70000);
+  pl.set_int32( -300);
+  pl.set_int32(-70000);
+  pl.set_float((float)1000.01);
+  pl.set_str("abcdef");
+  PUBLISH(tp_request_01,&pl,1);
+
+  return 0;
 }
 
-/*---------  Link Tasks to the Application --------*/
 
-TASK_LIST = {
-	          {task1, 60},
+/*---------------  List of task invoked by Timer ------------*/
 
-END_OF_TASK_LIST};
+TASK_LIST = {  //{ MQString* topic, executing duration in second},
+  {f_publish_all, 10},
+  END_OF_TASK_LIST
+};
 
-/*==================================================
- *      Tasks invoked by PUBLISH command Packet
- *=================================================*/
-int on_publish1(MqttsnPublish* msg){
-	char buf[] ={0,0,0,0};
-	memcpy(buf,msg->getData(),msg->getDataLength());
-	printf("Received Message =  %s\n",buf);
-	return 0;
+
+/*------------------------------------------------------
+ *       Tasks invoked by PUBLISH command Packet
+ *------------------------------------------------------*/
+/*----- Topic list used in callback functions -----*/
+TOPICS_IN_CALLBACK = {
+	tp_response_01,
+	tp_response_02,
+	END_OF_TOPICS
+};
+
+int f_onRequest_01(MqttsnPublish* msg){
+	printf("inside f_onRequest_01()\n");
+	Payload pl;
+	pl.getPayload(msg);
+	pl.print();
+	printf("uint8: %d\n",pl.get_uint32(0));
+	printf("uint16: %d\n",pl.get_uint32(1));
+	printf("uint32: %d\n",pl.get_uint32(2));
+	printf("int8: %d\n",pl.get_uint32(3));
+	printf("int16: %d\n",pl.get_int32(4));
+	printf("int32: %d\n",pl.get_int32(5));
+	printf("float: %g \n",pl.get_float(6));
+	uint16_t len;
+	printf("str: %s  \n",pl.get_str(7,&len));
+
+  PUBLISH(tp_response_01,&pl,QOS1);
+  return 0;
 }
 
-/*------------ Link Callback to Topic -------------*/
+int f_onRequest_02(MqttsnPublish* msg){
+	printf("inside f_onRequest_02()\n");
+  PUBLISH(tp_response_02,"topic/rsp/02", 12,1);
+  return 0;
+}
 
-SUBSCRIBE_LIST = {
-	                {topic1, on_publish1, QOS1},
+/*-------------- List of Task invoked by PUBLISH  -----------*/
 
-END_OF_SUBSCRIBE_LIST};
+SUBSCRIBE_LIST = { //{ MQString* topic, on_publish1, QOS },
+  {tp_request_01, f_onRequest_01, QOS1},
+  {tp_request_02, f_onRequest_02, QOS1},
+  END_OF_SUBSCRIBE_LIST
+};
+
 
 /*==================================================
  *      Application setup

@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #include <MQTTSN_Application.h>
@@ -38,6 +38,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
+
 /*============================================
  *
  *   MQTT-SN Client Application for Arduino
@@ -51,10 +52,10 @@
         0               //Device (for linux App)
     }, 
     {             
-        "ARD01",       //ClientId
+        "ARD02",       //ClientId
         300,            //KeepAlive
         true,           //Clean session
-        true,           //EndDevice
+        false,           //EndDevice
         "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING "" !
         "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING "" !
     }
@@ -68,24 +69,26 @@ UDP_APP_CONFIG = {
         1883,                // Multicast group Port
         {192,168,11,18},     // Local IP     (for Arduino App)
         12001,               // Local PortNo
-        {0x0,0x0,0x0,0x0,0x0,0x0}   // MAC address  (for Arduino App)
+        {0x90,0xa2,0xda,0x0f,0x53,0xa5}       // MAC address  (for Arduino App)
     },
     { 
-        "ARD01",       //ClientId
+        "ARD02",       //ClientId
         300,            //KeepAlive
         true,           //Clean session
-        true,           //EndDevice
+        false,           //EndDevice
         "willTopic",    //WillTopic   or 0   DO NOT USE NULL STRING "" !
         "willMessage"   //WillMessage or 0   DO NOT USE NULL STRING "" !
     } 
 };
 #endif
+
 /*------------------------------------------------------
  *             Create Topic
  *------------------------------------------------------*/
-MQString* tpMeasure = new MQString("ty4tw/resistance");
-
-
+MQString* topic1 = new MQString("ty4tw/tp1");
+MQString* topic2 = new MQString("ty4tw/tp2");
+MQString* topic3 = new MQString("ty4tw/tp3");
+MQString* tpMeasure = new MQString("ty4tw/soilReg");
 /*------------------------------------------------------
  *             Tasks invoked by Timer
  *------------------------------------------------------*/
@@ -108,30 +111,66 @@ int measure(){
   if(soilR < 0){
     soilR = 9999;
   }
-  char buf[30];
-  //GET_DATETIME(buf);
-  //sprintf(buf + 17," %4d[Kohom]",soilR);
-  return PUBLISH(tpMeasure,buf, 29,1);
+  Payload pl(20);
+  pl.set_uint32(GETUTC());
+  pl.set_int32(soilR);
+  pl.set_str("Kohom");
+  return PUBLISH(tpMeasure,&pl,QOS1);
 }
 
+
+int task1(){
+  Payload pl = Payload(30);
+  pl.set_int32(30);
+  pl.set_int32(255);
+  pl.set_int32(70000);
+  pl.set_str("abcdef");
+  pl.set_int32(-16);
+  pl.set_int32(-60);
+  pl.set_int32(-300);
+  pl.set_int32(-70000);
+  pl.set_float(1000.01);
+  return PUBLISH(topic1,&pl,1);
+}
+
+int task2(){
+  return PUBLISH(topic2,"5678", 4,1);
+}
 
 /*---------------  List of task invoked by Timer ------------*/
 
 TASK_LIST = {  //{ MQString* topic, executing duration in second},
-            {measure, 40},
+           {measure, 40},
+           {task1,6},
+           {task2,6},
 END_OF_TASK_LIST};
 
 
 /*------------------------------------------------------
  *       Tasks invoked by PUBLISH command Packet
  *------------------------------------------------------*/
-//void on_publish1(MqttsnPublish* msg){
-//
-//} 
+ TOPICS_IN_CALLBACK = {
+   topic3,
+   END_OF_TOPICS
+ };
+ 
+int on_publish1(MqttsnPublish* msg){
+    Payload pl;
+    pl.getPayload(msg);
+    PUBLISH(topic3,&pl,1);
+    return 0;
+}
 
-/*-------------- List of Task invoked by PUBLISH  -----------*/
+int on_publish2(MqttsnPublish* msg){
+    theApplication->indicatorOff();
+    return 0;
+}
 
-SUBSCRIBE_LIST = { //{ MQString* topic, on_publish1, QOS1 },
+/*------------ Link Callback to Topic -------------*/
+
+SUBSCRIBE_LIST = {
+                    {topic1, on_publish1, QOS1},
+                    {topic2, on_publish2, QOS1},
 
 END_OF_SUBSCRIBE_LIST};
 
@@ -146,7 +185,7 @@ void interruptCallback(){
  *            Arduino setup() function 
  *------------------------------------------------------*/
  void setup(){
-    // nop
+
  }
 
 

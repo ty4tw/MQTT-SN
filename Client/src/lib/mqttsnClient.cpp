@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifdef ARDUINO
@@ -74,6 +74,15 @@ using namespace tomyClient;
 
 extern OnPublishList theOnPublishList[];
 extern APP_CONFIG theAppConfig;
+extern MQString* theTopics[];
+
+extern uint16_t getUint16(uint8_t* pos);
+extern uint32_t getUint32(uint8_t* pos);
+extern float    getFloat32(uint8_t* pos);
+
+extern void setUint16(uint8_t* pos, uint16_t val);
+extern void setUint32(uint8_t* pos, uint32_t val);
+extern void setFloat32(uint8_t* pos, float val);
 
 static MqttsnClient*  theMqttsn;
 
@@ -122,6 +131,12 @@ int MqttsnClient::initialize(APP_CONFIG config){
 void MqttsnClient::subscribe(){
 	for(int i = 0; theOnPublishList[i].pubCallback; i++){
 		subscribe(theOnPublishList[i].topic, theOnPublishList[i].pubCallback, theOnPublishList[i].qos);
+	}
+}
+
+void MqttsnClient::createTopics(){
+	for(int i = 0; theTopics[i]; i++){
+		registerTopic(theTopics[i]);
 	}
 }
 
@@ -515,6 +530,11 @@ int MqttsnClient::registerTopic(MQString* topic){
     mqttsMsg.setTopicName(topic);
     mqttsMsg.setMsgId(getNextMsgId());
     _topics.addTopic(topic);
+
+    D_MQTTW("\nREGISTER SEND Topic = ");
+	D_MQTTLN(topic->getConstStr());
+	D_MQTTF("%s\r\n", topic->getConstStr());
+
     requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
     return exec();
 }
@@ -553,6 +573,11 @@ int MqttsnClient::publish(MQString* topic, const char* data, int dataLength, uin
 		mqttsMsg.setMsgId(getNextMsgId());
 	}
 	requestSendMsg((MqttsnMessage*)&mqttsMsg);
+
+	D_MQTTW("PUBLISH SEND msgID = ");
+	D_MQTTLN(mqttsMsg.getMsgId(),DEC);
+	D_MQTTF("%d\r\n", mqttsMsg.getMsgId());
+
 	int rc = exec();
 	if (rc == MQTTSN_ERR_INVALID_TOPICID){
 		registerTopic(topic);
@@ -701,6 +726,11 @@ int MqttsnClient::pubAck(uint16_t topicId, uint16_t msgId, uint8_t rc){
     mqttsMsg.setTopicId(topicId);
     mqttsMsg.setMsgId(msgId);
     mqttsMsg.setReturnCode(rc);
+
+    D_MQTTW("\nPUBACK SEND MsgId = ");
+	D_MQTTLN(msgId,DEC);
+	D_MQTTF("%d", msgId);
+
     return requestPrioritySendMsg((MqttsnMessage*)&mqttsMsg);
     //return requestSendMsg((MqttsnMessage*)&mqttsMsg);
 }
@@ -747,8 +777,12 @@ int  MqttsnClient::pingReq(MQString* clientId){
 void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 	uint8_t msgType = recvMsg->getType();
     if ( (_clientStatus.isSearching() && msgType != MQTTSN_TYPE_GWINFO) ||
-    	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH )){
-
+    	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH ) ||
+		 (getMsgRequestType() == MQTTSN_TYPE_PUBLISH &&
+		  getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK &&
+		  msgType == MQTTSN_TYPE_PUBLISH ) )
+    {
+    	D_MQTTW("Ignore Received Message\r\n");
 /*---------  GWINFO  ----------*/
 	}else if (msgType == MQTTSN_TYPE_GWINFO && recvMsg->getPayloadLength() == 3){
 		D_MQTTW("GWINFO recv\r\n");
@@ -795,10 +829,15 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     }else if (msgType == MQTTSN_TYPE_PUBLISH){
 
     	if(_clientStatus.isAvailableToSend()){
-    		D_MQTTW("PUBLISH recv\r\n");
+    		_clientStatus.setSubscribing(true);
 			MqttsnPublish mqMsg = MqttsnPublish();
 			mqMsg.setFrame(recvMsg);
-			_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
+
+    		D_MQTTW("PUBLISH RECV msgID = ");
+    		D_MQTTLN(mqMsg.getMsgId(),DEC);
+    		D_MQTTF("%d\r\n", mqMsg.getMsgId());
+
+			//_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
 
 			if (mqMsg.getQos() == MQTTSN_FLAG_QOS_1){
 				pubAck(mqMsg.getTopicId(), mqMsg.getMsgId(), MQTTSN_RC_ACCEPTED);
@@ -811,6 +850,8 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 			if(getMsgRequestStatus() == MQTTSN_MSG_WAIT_ACK){
 				*returnCode = MQTTSN_READ_RESP_ONCE_MORE;
 			}
+			_pubHdl.exec(&mqMsg,&_topics);   //  Execute Callback routine
+    		_clientStatus.setSubscribing(false);
     	}else{
     		D_MQTTW("PUBLISH recv Client is not Active\r\n");
     	}
@@ -824,7 +865,10 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
         MqttsnPubAck mqMsg = MqttsnPubAck();
         copyMsg(&mqMsg, recvMsg);
 
-        D_MQTTW("\nPUBACK recv RC=");
+        D_MQTTW("\nPUBACK RECV MsgId = ");
+		D_MQTTLN(mqMsg.getMsgId(),DEC);
+		D_MQTTF("%d", mqMsg.getMsgId());
+        D_MQTTW(" RC=");
         D_MQTTLN(mqMsg.getReturnCode(),DEC);
         D_MQTTF("%d\r\n", mqMsg.getReturnCode());
 

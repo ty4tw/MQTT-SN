@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified:
+ *    Modified: 2014/09/05
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 0.0.0
+ *     Version: 1.0.0
  */
 
 #ifndef ARDUINO
@@ -184,10 +184,6 @@ int MqttsnClientApplication::unsubscribe(MQString* topic){
 int MqttsnClientApplication::disconnect(uint16_t duration){
     return _mqttsn.disconnect(duration);
 }
-
-
-
-
 
 /*-------------- Callback related functions ---------------*/
 
