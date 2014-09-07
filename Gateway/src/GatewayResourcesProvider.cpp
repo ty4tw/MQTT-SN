@@ -563,6 +563,8 @@ MQTTSnMessage* Event::getMqttSnMessage(){
         Class LightIndicator
  =====================================*/
 LightIndicator::LightIndicator(){
+	_greenStatus = true;
+	_blueStatus = true;
 	greenLight(false);
 	blueLight(false);
 }
@@ -573,20 +575,32 @@ LightIndicator::~LightIndicator(){
 
 void LightIndicator::greenLight(bool on){
 	if(on){
-		// ToDo: Turn on
-		D_NWSTACK("G:ON R:OFF\n");
+		if(_greenStatus == false){
+			_greenStatus = true;
+			// ToDo: Turn Green on & turn Red off
+			D_NWSTACK("G:ON R:OFF\n");
+		}
 	}else{
-		// ToDo: Turn off
-		D_NWSTACK("G:OFF R:ON\n");
+		if(_greenStatus == true){
+			_greenStatus = false;
+			// ToDo: Turn Green off & turn Red on
+			D_NWSTACK("G:OFF R:ON\n");
+		}
 	}
 }
 
 void LightIndicator::blueLight(bool on){
 	if(on){
-		// ToDo: Turn on
-		D_NWSTACK("B:ON\n");
+		if(_blueStatus == false){
+			_blueStatus = true;
+			// ToDo: Turn Blue on
+			D_NWSTACK("B:ON\n");
+		}
 	}else{
-		// ToDo: Turn off
-		D_NWSTACK("B:OFF\n");
+		if(_blueStatus == true){
+			_blueStatus = false;
+			// ToDo: Turn Blue off
+			D_NWSTACK("B:OFF\n");
+		}
 	}
 }

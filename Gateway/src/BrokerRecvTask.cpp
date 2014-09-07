@@ -232,7 +232,6 @@ char*  BrokerRecvTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 	buf += 3;
 
 	for(int i = 0; i < msg->getRemainLength() + msg->getRemainLengthSize(); i++){
-		//sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
 		sprintf(buf, " %02X", *( buffer + 1 + i));
 		buf += 3;
 	}

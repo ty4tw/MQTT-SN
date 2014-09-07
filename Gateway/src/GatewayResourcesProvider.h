@@ -206,6 +206,9 @@ public:
 	~LightIndicator();
 	void greenLight(bool);
 	void blueLight(bool);
+private:
+	bool _greenStatus;
+	bool _blueStatus;
 };
 
 /*=====================================
