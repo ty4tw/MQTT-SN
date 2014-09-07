@@ -157,6 +157,7 @@ void BrokerSendTask::run(){
 
 char*  BrokerSendTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 	char* buf = _printBuf;
+	_res->getLightIndicator()->blueLight(true);
 
 	sprintf(buf, " %02X", *buffer);
 	buf += 3;
@@ -167,6 +168,7 @@ char*  BrokerSendTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 		buf += 3;
 	}
 	*buf = 0;
+	_res->getLightIndicator()->blueLight(false);
 	return _printBuf;
 }
 

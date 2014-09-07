@@ -198,6 +198,17 @@ private:
 };
 
 /*=====================================
+     Class LightIndicator
+ =====================================*/
+class LightIndicator{
+public:
+	LightIndicator();
+	~LightIndicator();
+	void greenLight(bool);
+	void blueLight(bool);
+};
+
+/*=====================================
      Class GatewayResourcesProvider
  =====================================*/
 class GatewayResourcesProvider: public MultiTaskProcess{
@@ -210,12 +221,14 @@ public:
 	EventQue<Event>* getBrokerSendQue();
 	ClientList* getClientList();
 	Network* getNetwork();
+	LightIndicator* getLightIndicator();
 private:
 	ClientList _clientList;
 	EventQue<Event> _gatewayEventQue;
 	EventQue<Event> _brokerSendQue;
 	EventQue<Event> _clientSendQue;
 	Network _network;
+	LightIndicator _lightIndicator;
 };
 
 

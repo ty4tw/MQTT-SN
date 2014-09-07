@@ -60,16 +60,16 @@ void BrokerRecvTask::run(){
 
 	struct timeval timeout;
 
-
+	LightIndicator* lightIndicator = _res->getLightIndicator();
 	ClientList* clist = _res->getClientList();
 	fd_set readfds;
-	int sockfd;
 
 	while(true){
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 500000;    // 500 msec
 		FD_ZERO(&readfds);
 		int maxSock = 0;
+		int sockfd = 0;
 
 		/*------- Prepare socket list to check -------*/
 		for( int i = 0; i < clist->getClientCount(); i++){
@@ -92,18 +92,23 @@ void BrokerRecvTask::run(){
 
 		if (activity > 0){
 			for( int i = 0; i < clist->getClientCount(); i++){
+				lightIndicator->blueLight(false);
 				if((*clist)[i]){
 					if((*clist)[i]->getSocket()->isValid()){
 						int sockfd = (*clist)[i]->getSocket()->getSock();
 						if(FD_ISSET(sockfd, &readfds)){
 
 							recvAndFireEvent((*clist)[i]);
+
+							lightIndicator->blueLight(true);
 						}
 					}
 				}else{
 					break;
 				}
 			}
+		}else{
+			lightIndicator->blueLight(false);
 		}
 	}
 }
@@ -221,6 +226,8 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 char*  BrokerRecvTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 	char* buf = _printBuf;
 
+	_res->getLightIndicator()->blueLight(true);
+
 	sprintf(buf, " %02X", *buffer);
 	buf += 3;
 
@@ -230,5 +237,6 @@ char*  BrokerRecvTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
 		buf += 3;
 	}
 	*buf = 0;
+	_res->getLightIndicator()->blueLight(false);
 	return _printBuf;
 }

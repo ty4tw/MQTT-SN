@@ -55,10 +55,12 @@ GatewayResourcesProvider* theGatewayResources = 0;
 GatewayResourcesProvider::GatewayResourcesProvider(): MultiTaskProcess(){
 	theMultiTask = this;
 	theProcess = this;
+	_lightIndicator.greenLight(false);
 }
 
 GatewayResourcesProvider::~GatewayResourcesProvider(){
 	printf("%s TomyGateway stop\n", currentDateTime());
+	_lightIndicator.greenLight(false);
 }
 
 EventQue<Event>* GatewayResourcesProvider::getGatewayEventQue(){
@@ -79,6 +81,10 @@ ClientList* GatewayResourcesProvider::getClientList(){
 
 Network* GatewayResourcesProvider::getNetwork(){
 	return &_network;
+}
+
+LightIndicator* GatewayResourcesProvider::getLightIndicator(){
+	return &_lightIndicator;
 }
 
 /*=====================================
@@ -553,4 +559,34 @@ MQTTSnMessage* Event::getMqttSnMessage(){
 	return _mqttSnMessage;
 }
 
+/*=====================================
+        Class LightIndicator
+ =====================================*/
+LightIndicator::LightIndicator(){
+	greenLight(false);
+	blueLight(false);
+}
 
+LightIndicator::~LightIndicator(){
+
+}
+
+void LightIndicator::greenLight(bool on){
+	if(on){
+		// ToDo: Turn on
+		D_NWSTACK("G:ON R:OFF\n");
+	}else{
+		// ToDo: Turn off
+		D_NWSTACK("G:OFF R:ON\n");
+	}
+}
+
+void LightIndicator::blueLight(bool on){
+	if(on){
+		// ToDo: Turn on
+		D_NWSTACK("B:ON\n");
+	}else{
+		// ToDo: Turn off
+		D_NWSTACK("B:OFF\n");
+	}
+}
