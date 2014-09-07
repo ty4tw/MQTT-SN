@@ -61,6 +61,7 @@ void BrokerSendTask::run(){
 	Event* ev = 0;
 	MQTTMessage* srcMsg = 0;
 	ClientNode* clnode = 0;
+	LightIndicator* light = _res->getLightIndicator();
 
 	uint8_t buffer[SOCKET_MAXBUFFER_LENGTH];
 
@@ -136,6 +137,8 @@ void BrokerSendTask::run(){
 				if(rc == -1){
 					clnode->getSocket()->disconnect();
 					printf("Socket is valid. but can't send to Client:%s\n", clnode->getNodeId()->c_str());
+				}else{
+					light->greenLight(true);
 				}
 			}else{
 				if(clnode->getSocket()->connect(host, service)){
@@ -143,6 +146,8 @@ void BrokerSendTask::run(){
 					if(rc == -1){
 						clnode->getSocket()->disconnect();
 						printf("Socket is created. but can't send to Client:%s\n", clnode->getNodeId()->c_str());
+					}else{
+						light->greenLight(true);
 					}
 				}else{
 					printf("%s Can't connect to Client:%s\n",

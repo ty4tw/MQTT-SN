@@ -86,13 +86,15 @@ void BrokerRecvTask::run(){
 				break;
 			}
 		}
+		if(maxSock == 0){
+			lightIndicator->greenLight(false);
+		}
 
 		/*------- Check socket to receive -------*/
 		int activity =  select( maxSock + 1 , &readfds , 0 , 0 , &timeout);
 
 		if (activity > 0){
 			for( int i = 0; i < clist->getClientCount(); i++){
-				lightIndicator->blueLight(false);
 				if((*clist)[i]){
 					if((*clist)[i]->getSocket()->isValid()){
 						int sockfd = (*clist)[i]->getSocket()->getSock();
@@ -100,15 +102,13 @@ void BrokerRecvTask::run(){
 
 							recvAndFireEvent((*clist)[i]);
 
-							lightIndicator->blueLight(true);
+							lightIndicator->greenLight(true);
 						}
 					}
 				}else{
 					break;
 				}
 			}
-		}else{
-			lightIndicator->blueLight(false);
 		}
 	}
 }

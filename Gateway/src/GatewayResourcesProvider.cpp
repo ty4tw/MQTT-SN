@@ -563,6 +563,7 @@ MQTTSnMessage* Event::getMqttSnMessage(){
         Class LightIndicator
  =====================================*/
 LightIndicator::LightIndicator(){
+	init();
 	_greenStatus = true;
 	_blueStatus = true;
 	greenLight(false);
@@ -577,30 +578,44 @@ void LightIndicator::greenLight(bool on){
 	if(on){
 		if(_greenStatus == false){
 			_greenStatus = true;
-			// ToDo: Turn Green on & turn Red off
+			//Turn Green on & turn Red off
+			lit(GW_IND_GREEN, true);
+			lit(GW_IND_RED, false);
 			D_NWSTACK("G:ON R:OFF\n");
 		}
 	}else{
 		if(_greenStatus == true){
 			_greenStatus = false;
-			// ToDo: Turn Green off & turn Red on
+			//Turn Green off & turn Red on
+			lit(GW_IND_GREEN, false);
+			lit(GW_IND_RED, true);
 			D_NWSTACK("G:OFF R:ON\n");
 		}
 	}
+}
+
+void LightIndicator::init(){
+	// ToDo:
 }
 
 void LightIndicator::blueLight(bool on){
 	if(on){
 		if(_blueStatus == false){
 			_blueStatus = true;
-			// ToDo: Turn Blue on
+			lit(GW_IND_BLUE, false);
 			D_NWSTACK("B:ON\n");
 		}
 	}else{
 		if(_blueStatus == true){
 			_blueStatus = false;
-			// ToDo: Turn Blue off
+			lit(GW_IND_BLUE, false);
 			D_NWSTACK("B:OFF\n");
 		}
 	}
+}
+
+void LightIndicator::lit(uint8_t color, bool onoff){
+#ifdef WITH_GPIO
+	// ToDo: GP-IO control
+#endif
 }
