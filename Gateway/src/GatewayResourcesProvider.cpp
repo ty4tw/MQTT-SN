@@ -52,7 +52,7 @@ extern char* currentDateTime();
 extern void setUint32(uint8_t* pos, uint32_t val);
 
 extern "C"{
-	int wiringSetupGpio(void);
+	int wiringPiSetup(void);
 	void pinMode(int gpioNo, int mode);
 	void digitalWrite(int gpioNo, int val);
 }
@@ -587,7 +587,7 @@ LightIndicator::~LightIndicator(){
 
 void LightIndicator::init(){
 #ifdef RASPBERRY_LIGHT_INDICATOR
-	if(wiringSetupGpio() != -1){
+	if(wiringPiSetup() != -1){
 		pinMode(LIGHT_INDICATOR_GREEN, OUTPUT);
 		pinMode(LIGHT_INDICATOR_RED, OUTPUT);
 		pinMode(LIGHT_INDICATOR_BLUE, OUTPUT);
@@ -631,7 +631,7 @@ void LightIndicator::blueLight(bool on){
 void LightIndicator::lit(int gpioNo, int onoff){
 #ifdef RASPBERRY_LIGHT_INDICATOR
 	if(_gpioAvailable){
-		gpioWrite(gpioNo,onoff);
+		digitalWrite(gpioNo,onoff);
 	}
 #else
 	D_NWSTACK("GPIO No = %u  ON/OFF = %u\n", gpioNo, onoff);
