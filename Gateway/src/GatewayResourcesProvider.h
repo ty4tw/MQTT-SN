@@ -43,10 +43,6 @@
 
 #define FILE_NAME_CLIENT_LIST "config/clientList.conf"
 
-#define GW_IND_GREEN   1
-#define GW_IND_RED     2
-#define GW_IND_BLUE    3
-
 /*=====================================
         Class MessageQue
  =====================================*/
@@ -213,9 +209,10 @@ public:
 	void blueLight(bool);
 private:
 	void init();
-	void lit(uint8_t color, bool onoff);
+	void lit(uint8_t gpioNo, uint8_t onoff);
 	bool _greenStatus;
 	bool _blueStatus;
+	bool _gpioAvailable;
 };
 
 /*=====================================

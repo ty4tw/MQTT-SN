@@ -563,6 +563,7 @@ MQTTSnMessage* Event::getMqttSnMessage(){
         Class LightIndicator
  =====================================*/
 LightIndicator::LightIndicator(){
+	_gpioAvailable = false;
 	init();
 	_greenStatus = true;
 	_blueStatus = true;
@@ -574,48 +575,55 @@ LightIndicator::~LightIndicator(){
 
 }
 
-void LightIndicator::greenLight(bool on){
-	if(on){
-		if(_greenStatus == false){
-			_greenStatus = true;
-			//Turn Green on & turn Red off
-			lit(GW_IND_GREEN, true);
-			lit(GW_IND_RED, false);
-			D_NWSTACK("G:ON R:OFF\n");
-		}
-	}else{
-		if(_greenStatus == true){
-			_greenStatus = false;
-			//Turn Green off & turn Red on
-			lit(GW_IND_GREEN, false);
-			lit(GW_IND_RED, true);
-			D_NWSTACK("G:OFF R:ON\n");
-		}
+void LightIndicator::init(){
+#ifdef RASPBERRY_LIGHT_INDICATOR
+	if(wiringSetupGpio() != -1){
+		pinMode(LIGHT_INDICATOR_GREEN, OUTPUT);
+		pinMode(LIGHT_INDICATOR_RED, OUTPUT);
+		pinMode(LIGHT_INDICATOR_BLUE, OUTPUT);
+		_gpioAvailable = true;
 	}
+#endif
 }
 
-void LightIndicator::init(){
-	// ToDo:
+void LightIndicator::greenLight(bool on){
+	if(on){
+		if(_greenStatus == 0){
+			_greenStatus = 1;
+			//Turn Green on & turn Red off
+			lit(LIGHT_INDICATOR_GREEN, 1);
+			lit(LIGHT_INDICATOR_RED, 0);
+		}
+	}else{
+		if(_greenStatus == 1){
+			_greenStatus = 0;
+			//Turn Green off & turn Red on
+			lit(LIGHT_INDICATOR_GREEN, 0);
+			lit(LIGHT_INDICATOR_RED, 1);
+		}
+	}
 }
 
 void LightIndicator::blueLight(bool on){
 	if(on){
-		if(_blueStatus == false){
-			_blueStatus = true;
-			lit(GW_IND_BLUE, false);
-			D_NWSTACK("B:ON\n");
+		if(_blueStatus == 0){
+			_blueStatus = 1;
+			lit(LIGHT_INDICATOR_BLUE, 0);
 		}
 	}else{
-		if(_blueStatus == true){
-			_blueStatus = false;
-			lit(GW_IND_BLUE, false);
-			D_NWSTACK("B:OFF\n");
+		if(_blueStatus == 1){
+			_blueStatus = 0;
+			lit(LIGHT_INDICATOR_BLUE, 0);
 		}
 	}
 }
 
-void LightIndicator::lit(uint8_t color, bool onoff){
-#ifdef WITH_GPIO
-	// ToDo: GP-IO control
+void LightIndicator::lit(uint8_t gpioNo, uint8_t onoff){
+#ifdef RASPBERRY_LIGHT_INDICATOR
+	if(_gpioAvailable){
+		gpioWrite(gpioNo,onoff);
+	}
+#else
+	D_NWSTACK("GPIO No = %u  ON/OFF = %u\n", gpioNo, onoff);
 #endif
 }

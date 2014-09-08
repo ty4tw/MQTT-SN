@@ -23,6 +23,7 @@ DEFS :=
 LDFLAGS += 
 LIBS +=
 LDADD := -lpthread -lrt
+#LDADD := -lpthread -lrt -lwiringPi
 
 CXXFLAGS := -Wall -O3
 

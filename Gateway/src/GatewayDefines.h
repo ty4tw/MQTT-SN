@@ -78,6 +78,18 @@
 
 #define MAX_CLIENT_NODES  500
 
+/*==========================================================
+ *           Light Indicators
+ *
+ *  Change Makefile line25 and 26
+ *   Line25 comment out  #LDADD := -lpthread -lrt
+ *   Line26 uncomment    LDADD := -lpthread -lrt -lwiringPi
+ *
+ ===========================================================*/
+//#define RASPBERRY_LIGHT_INDICATOR
 
+#define LIGHT_INDICATOR_GREEN   4    // RPi connector 16
+#define LIGHT_INDICATOR_RED     5    // RPi connector 18
+#define LIGHT_INDICATOR_BLUE    6    // RPi connector 22
 
 #endif /* GATEWAYDEFINES_H_ */
