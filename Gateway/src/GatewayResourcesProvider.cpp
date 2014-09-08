@@ -41,11 +41,21 @@
 #include <string.h>
 #include <string>
 
+#ifdef RASPBERRY_LIGHT_INDICATOR
+#include <wiringPi.h>
+#endif
+
 using namespace std;
 
 extern Process* theProcess;
 extern char* currentDateTime();
 extern void setUint32(uint8_t* pos, uint32_t val);
+
+extern "C"{
+	int wiringSetupGpio(void);
+	void pinMode(int gpioNo, int mode);
+	void digitalWrite(int gpioNo, int val);
+}
 
 GatewayResourcesProvider* theGatewayResources = 0;
 
@@ -618,7 +628,7 @@ void LightIndicator::blueLight(bool on){
 	}
 }
 
-void LightIndicator::lit(uint8_t gpioNo, uint8_t onoff){
+void LightIndicator::lit(int gpioNo, int onoff){
 #ifdef RASPBERRY_LIGHT_INDICATOR
 	if(_gpioAvailable){
 		gpioWrite(gpioNo,onoff);

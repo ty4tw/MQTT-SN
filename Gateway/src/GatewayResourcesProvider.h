@@ -209,7 +209,7 @@ public:
 	void blueLight(bool);
 private:
 	void init();
-	void lit(uint8_t gpioNo, uint8_t onoff);
+	void lit(int gpioNo, int onoff);
 	bool _greenStatus;
 	bool _blueStatus;
 	bool _gpioAvailable;
