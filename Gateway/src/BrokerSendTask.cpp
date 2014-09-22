@@ -154,6 +154,9 @@ void BrokerSendTask::run(){
 							currentDateTime(), clnode->getNodeId()->c_str());
 				}
 			}
+			if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
+				clnode->getSocket()->disconnect();
+			}
 		}
 		delete ev;
 	}
