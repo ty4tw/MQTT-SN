@@ -46,22 +46,27 @@ Usage
   remove the Build directory.    
     
 ####3)  Start Gateway  
-    Over UDP 
-        $ TomyGateway -i 1  -g 225.1.1.1  -u 2000  -h test.mosquitto.org  -g 1883         
- 
-    Over XBee
-        $ TomyGateway -i 1 -d /dev/ttyUSB0 -b 57600 -h test.mosquitto.org -p 1883       
+  Prepare parameter file   /usr/local/etc/tomygateway/config/param.conf
     
-    Usage:  -b: [Baudrate]  (XBee)     
-            -d: [Device]    (XBee)          
-            -g  [GroupIp]   (UDP)  Multicast IP address   
-            -u  [UDPportNo] (UDP)  Unicast to clients port 
-            -i  [GatewayId]   
-            -l  [User name]    
-            -w  [Password]    
-            -k  [KeepAlive]      
-            -h  [Broker]    
-            -p  [Broker PortNo]  Blocker port and also UDP multicast port     
+    BrokerName=test.mosquitto.org     
+    BrokerPortNo=1883    
+    #LoginID=    
+    #Password=    
+    SerialDevice=/dev/ttyUSB0     
+    BroadcastIP=255.1.1.1     
+    GatewayPortNo=2000     
+    GatewayID=1    
+    KeepAlive=900     
+
+  Prepare Key files for semaphore and sheared memory.  file's contents is emply.     
+    /usr/local//etc/tomygateway/config/rbmutex.key    
+    /usr/local//etc/tomygateway/config/ringbuffer.key     
+    /usr/local//etc/tomygateway/config/semaphore.key    
+
+  Execute      
+        $ TomyGateway     
+
+   
 
 XBee configurations
 ----------------------
@@ -105,8 +110,8 @@ Raspberry Pi SD card img file
     3) root's password is root    
     4) Login ID is "gw" and password is "gw".    xxx.xxx... is IP address DHCP assigned.    
         $ ssh xxx.xxx.xxx.xxx -l gw -p 22022  
-    5) execute ./TomyGatewayXBee.sh  for XBee    
-               ./TomyGatewayUDP.sh   for UDP
+    5) TomyGateway is invoked automaticaly. 
+              
 
     
 How to connect XBee to Raspberry Pi    
