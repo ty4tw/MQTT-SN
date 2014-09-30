@@ -128,7 +128,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 	int recvLength = clnode->getSocket()->recv(packet, SOCKET_MAXBUFFER_LENGTH);
 
 	if (recvLength == -1){
-		printf(" Client : %s Broker Connection Error\n", clnode->getNodeId()->c_str());
+		LOGWRITE(" Client : %s Broker Connection Error\n", clnode->getNodeId()->c_str());
 		clnode->updateStatus(Cstat_Disconnected);
 	}
 
@@ -138,14 +138,14 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTPubAck* puback = new MQTTPubAck();
 			puback->deserialize(packet);
 			puback->serialize(sbuff);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBACK", LEFTARROW, BROKER, msgPrint(sbuff, puback));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBACK", LEFTARROW, BROKER, msgPrint(sbuff, puback));
 
 			clnode->setBrokerRecvMessage(puback);
 		}else if((*packet & 0xf0) == MQTT_TYPE_PUBREC){
 			MQTTPubRec* pubRec = new MQTTPubRec();
 			pubRec->deserialize(packet);
 			pubRec->serialize(sbuff);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBREC", LEFTARROW, BROKER, msgPrint(sbuff, pubRec));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBREC", LEFTARROW, BROKER, msgPrint(sbuff, pubRec));
 
 			clnode->setBrokerRecvMessage(pubRec);
 
@@ -153,7 +153,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTPubRel* pubRel = new MQTTPubRel();
 			pubRel->deserialize(packet);
 			pubRel->serialize(sbuff);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, BROKER, msgPrint(sbuff, pubRel));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, BROKER, msgPrint(sbuff, pubRel));
 
 			clnode->setBrokerRecvMessage(pubRel);
 
@@ -161,7 +161,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTPubComp* pubComp = new MQTTPubComp();
 			pubComp->deserialize(packet);
 			pubComp->serialize(sbuff);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBCOMP", LEFTARROW, BROKER, msgPrint(sbuff, pubComp));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBCOMP", LEFTARROW, BROKER, msgPrint(sbuff, pubComp));
 
 			clnode->setBrokerRecvMessage(pubComp);
 
@@ -169,7 +169,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTPublish* publish = new MQTTPublish();
 			publish->deserialize(packet);
 			publish->serialize(sbuff);
-			printf(GREEN_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, BROKER, msgPrint(sbuff, publish));
+			LOGWRITE(GREEN_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, BROKER, msgPrint(sbuff, publish));
 
 			clnode->setBrokerRecvMessage(publish);
 
@@ -177,7 +177,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTSubAck* suback = new MQTTSubAck();
 			suback->deserialize(packet);
 			suback->serialize(sbuff);
-			printf(FORMAT1, currentDateTime(), "SUBACK", LEFTARROW, BROKER, msgPrint(sbuff, suback));
+			LOGWRITE(FORMAT1, currentDateTime(), "SUBACK", LEFTARROW, BROKER, msgPrint(sbuff, suback));
 
 			clnode->setBrokerRecvMessage(suback);
 
@@ -185,7 +185,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTPingResp* pingresp = new MQTTPingResp();
 			pingresp->deserialize(packet);
 			pingresp->serialize(sbuff);
-			printf(FORMAT1, currentDateTime(), "PINGRESP", LEFTARROW, BROKER, msgPrint(sbuff, pingresp));
+			LOGWRITE(FORMAT1, currentDateTime(), "PINGRESP", LEFTARROW, BROKER, msgPrint(sbuff, pingresp));
 
 			clnode->setBrokerRecvMessage(pingresp);
 
@@ -193,7 +193,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTUnsubAck* unsuback = new MQTTUnsubAck();
 			unsuback->deserialize(packet);
 			unsuback->serialize(sbuff);
-			printf(FORMAT1, currentDateTime(), "UNSUBACK", LEFTARROW, BROKER, msgPrint(sbuff, unsuback));
+			LOGWRITE(FORMAT1, currentDateTime(), "UNSUBACK", LEFTARROW, BROKER, msgPrint(sbuff, unsuback));
 
 			clnode->setBrokerRecvMessage(unsuback);
 
@@ -201,12 +201,12 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 			MQTTConnAck* connack = new MQTTConnAck();
 			connack->deserialize(packet);
 			connack->serialize(sbuff);
-			printf(CYAN_FORMAT1, currentDateTime(), "CONNACK", LEFTARROW, BROKER, msgPrint(sbuff, connack));
+			LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", LEFTARROW, BROKER, msgPrint(sbuff, connack));
 
 			clnode->setBrokerRecvMessage(connack);
 
 		}else{
-			printf("%s UNKOWN_TYPE  packetLength=%d\n",currentDateTime(), recvLength);
+			LOGWRITE("%s UNKOWN_TYPE  packetLength=%d\n",currentDateTime(), recvLength);
 			return;
 		}
 

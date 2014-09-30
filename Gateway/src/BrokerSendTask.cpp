@@ -40,6 +40,7 @@
 #include "lib/Messages.h"
 #include "lib/Defines.h"
 #include <string.h>
+#include <errno.h>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -67,13 +68,13 @@ void BrokerSendTask::run(){
 
 	const char* host = BROKER_HOST_NAME;
 	const char* service = BROKER_PORT;
+	char param[TOMYFRAME_PARAM_MAX];
 
-
-	if(_res->getArgv('h') != 0){
-		host = strdup(_res->getArgv('h'));
-	}
-	if(_res->getArgv('p') != 0){
-		service =strdup( _res->getArgv('p'));
+	if(_res->getParam("BrokerName",param) == 0){
+			host = strdup(param);
+		}
+	if(_res->getParam("BrokerPortNo",param) == 0){
+		service =strdup( param);
 	}
 
 	while(true){
@@ -89,44 +90,44 @@ void BrokerSendTask::run(){
 		if(srcMsg->getType() == MQTT_TYPE_PUBLISH){
 			MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
 			MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
 			MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
 			MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
 			MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
 			MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 		else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
 			length = msg->serialize(buffer);
-			printf(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
 		}
 
 		int rc = 0;
@@ -135,8 +136,8 @@ void BrokerSendTask::run(){
 			if( clnode->getSocket()->isValid()){
 				rc = clnode->getSocket()->send(buffer, length);
 				if(rc == -1){
+					LOGWRITE("Socket is valid. but can't send to the Broker. errno=%d\n", errno);
 					clnode->getSocket()->disconnect();
-					printf("Socket is valid. but can't send to Client:%s\n", clnode->getNodeId()->c_str());
 				}else{
 					light->greenLight(true);
 				}
@@ -144,14 +145,14 @@ void BrokerSendTask::run(){
 				if(clnode->getSocket()->connect(host, service)){
 					rc = clnode->getSocket()->send(buffer, length);
 					if(rc == -1){
+						LOGWRITE("Socket is valid. but can't send to the Broker. errno=%d\n", errno);
 						clnode->getSocket()->disconnect();
-						printf("Socket is created. but can't send to Client:%s\n", clnode->getNodeId()->c_str());
 					}else{
 						light->greenLight(true);
 					}
 				}else{
-					printf("%s Can't connect to Client:%s\n",
-							currentDateTime(), clnode->getNodeId()->c_str());
+					LOGWRITE("%s Can't connect to the Broker.\n",
+							currentDateTime());
 				}
 			}
 			if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){

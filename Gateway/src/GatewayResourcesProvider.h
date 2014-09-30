@@ -41,7 +41,7 @@
 #include "lib/TCPStack.h"
 #include "lib/Topics.h"
 
-#define FILE_NAME_CLIENT_LIST "config/clientList.conf"
+#define FILE_NAME_CLIENT_LIST "/usr/local/etc/tomygateway/config/clientList.conf"
 
 /*=====================================
         Class MessageQue

@@ -1,5 +1,5 @@
 /*
- * A_ProgramStructure.cpp
+ * ErrorMessage.h
  *
  *                      The BSD License
  *
@@ -33,24 +33,14 @@
  *     Version: 0.0.0
  */
 
-#include "GatewayResourcesProvider.h"
-#include "ClientRecvTask.h"
-#include "ClientSendTask.h"
-#include "BrokerRecvTask.h"
-#include "BrokerSendTask.h"
-#include "GatewayControlTask.h"
-#include "lib/ProcessFramework.h"
+#ifndef ERRORMESSAGE_H_
+#define ERRORMESSAGE_H_
 
-const char* theCmdlineParameter = "b:d:i:h:p:g:u:l:w:k:";
 
-/**************************************
- *       Gateway Application
- **************************************/
+#define ERRNO_APL_01  1001   // can't open device.
+#define ERRNO_APL_02  1002   // Socket error
+#define ERRNO_APL_03  1003   // can't create a clientNode.
+#define ERRNO_APL_04  1004   // invalid GatewayId
+#define ERRNO_APL_05  1005   // KeepAliveTime is grater than 65536 Secs
 
-GatewayResourcesProvider gwR = GatewayResourcesProvider();
-
-GatewayControlTask th0 = GatewayControlTask(&gwR);
-ClientRecvTask th1 = ClientRecvTask(&gwR);
-ClientSendTask th2 = ClientSendTask(&gwR);
-BrokerRecvTask th3 = BrokerRecvTask(&gwR);
-BrokerSendTask th4 = BrokerSendTask(&gwR);
+#endif /* ERRORMESSAGE_H_ */

@@ -39,7 +39,6 @@
 #include "Messages.h"
 #include "ZBStack.h"
 #include "ProcessFramework.h"
-#include "ErrorMessage.h"
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -615,7 +614,7 @@ int SerialPort::open(XBeeConfig config){
   return open(config.device, config.baudrate, false, 1, config.flag);
 }
 
-int SerialPort::open(const char* devName, unsigned int boaurate,  bool parity, unsigned int stopbit, unsigned int flg){
+int SerialPort::open(const char* devName, unsigned int baudrate,  bool parity, unsigned int stopbit, unsigned int flg){
 	_fd = ::open(devName, flg | O_NOCTTY);
 	if(_fd < 0){
 	  return _fd;
@@ -627,13 +626,13 @@ int SerialPort::open(const char* devName, unsigned int boaurate,  bool parity, u
 	if (stopbit == 2){
 	  _tio.c_cflag = _tio.c_cflag | CSTOPB ;
 	}
-	switch(boaurate){
+	switch(baudrate){
 	case B9600:
 	case B19200:
 	case B38400:
 	case B57600:
 	case B115200:
-	  if( cfsetspeed(&_tio, boaurate)<0){
+	  if( cfsetspeed(&_tio, baudrate)<0){
 		return errno;
 	  }
 	  break;

@@ -1,5 +1,5 @@
 /*
- * A_ProgramStructure.cpp
+ * LogMonitor.hpp
  *
  *                      The BSD License
  *
@@ -32,25 +32,40 @@
  *      Author: Tomoaki YAMAGUCHI
  *     Version: 0.0.0
  */
+#ifndef LOGMONITOR_H_
+#define LOGMONITOR_H_
 
-#include "GatewayResourcesProvider.h"
-#include "ClientRecvTask.h"
-#include "ClientSendTask.h"
-#include "BrokerRecvTask.h"
-#include "BrokerSendTask.h"
-#include "GatewayControlTask.h"
 #include "lib/ProcessFramework.h"
 
-const char* theCmdlineParameter = "b:d:i:h:p:g:u:l:w:k:";
+using namespace std;
 
-/**************************************
- *       Gateway Application
- **************************************/
+class LogMonitor:public Process{
+public:
+	LogMonitor();
+	~LogMonitor();
+	void initialize(int argc, char** argv);
+	void run();
+};
 
-GatewayResourcesProvider gwR = GatewayResourcesProvider();
 
-GatewayControlTask th0 = GatewayControlTask(&gwR);
-ClientRecvTask th1 = ClientRecvTask(&gwR);
-ClientSendTask th2 = ClientSendTask(&gwR);
-BrokerRecvTask th3 = BrokerRecvTask(&gwR);
-BrokerSendTask th4 = BrokerSendTask(&gwR);
+LogMonitor::LogMonitor(){
+	theProcess = this;
+}
+
+LogMonitor::~LogMonitor(){
+
+}
+
+void LogMonitor::initialize(int argc, char** argv){
+	Process::initialize(0, NULL);
+}
+
+void LogMonitor::run(){
+	while(true){
+		const char* data = getLog();
+		printf("%s", data);
+	}
+}
+
+
+#endif /* LOGMONITOR_H_ */

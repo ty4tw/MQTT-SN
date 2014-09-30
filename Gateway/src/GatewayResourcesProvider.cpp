@@ -35,7 +35,7 @@
 #include "GatewayResourcesProvider.h"
 #include "GatewayDefines.h"
 #include "lib/ProcessFramework.h"
-#include "lib/ErrorMessage.h"
+#include "ErrorMessage.h"
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -69,7 +69,7 @@ GatewayResourcesProvider::GatewayResourcesProvider(): MultiTaskProcess(){
 }
 
 GatewayResourcesProvider::~GatewayResourcesProvider(){
-	printf("%s TomyGateway stop\n", currentDateTime());
+	LOGWRITE("%s TomyGateway stop\n", currentDateTime());
 	_lightIndicator.greenLight(false);
 }
 
@@ -393,12 +393,12 @@ void ClientList::authorize(const char* fname){
 				string id = data.substr(pos + 1);
 				createNode(&addr64,0,&id);
 			}else{
-				printf("Invalid address     %s\n",data.c_str());
+				LOGWRITE("Invalid address     %s\n",data.c_str());
 			}
 		}
 		fclose(fp);
 		_authorize = true;
-		printf("Clients are authorized.\n");
+		LOGWRITE("Clients are authorized.\n");
 	}
 }
 
@@ -618,7 +618,7 @@ void LightIndicator::blueLight(bool on){
 	if(on){
 		if(_blueStatus == 0){
 			_blueStatus = 1;
-			lit(LIGHT_INDICATOR_BLUE, 0);
+			lit(LIGHT_INDICATOR_BLUE, 1);
 		}
 	}else{
 		if(_blueStatus == 1){

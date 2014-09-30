@@ -1,6 +1,5 @@
 /*
- * A_ProgramStructure.cpp
- *
+ *   Defines.h
  *                      The BSD License
  *
  *           Copyright (c) 2014, tomoaki@tomy-tech.com
@@ -32,25 +31,20 @@
  *      Author: Tomoaki YAMAGUCHI
  *     Version: 0.0.0
  */
+#ifndef  DEFINES_H_
+#define  DEFINES_H_
 
-#include "GatewayResourcesProvider.h"
-#include "ClientRecvTask.h"
-#include "ClientSendTask.h"
-#include "BrokerRecvTask.h"
-#include "BrokerSendTask.h"
-#include "GatewayControlTask.h"
-#include "lib/ProcessFramework.h"
+/*=================================
+ *    CPU TYPE
+ ==================================*/
+#define CPU_LITTLEENDIANN
+//#define CPU_BIGENDIANN
 
-const char* theCmdlineParameter = "b:d:i:h:p:g:u:l:w:k:";
+/*=================================
+ *    Data Type
+ ==================================*/
+typedef unsigned char  uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int   uint32_t;
 
-/**************************************
- *       Gateway Application
- **************************************/
-
-GatewayResourcesProvider gwR = GatewayResourcesProvider();
-
-GatewayControlTask th0 = GatewayControlTask(&gwR);
-ClientRecvTask th1 = ClientRecvTask(&gwR);
-ClientSendTask th2 = ClientSendTask(&gwR);
-BrokerRecvTask th3 = BrokerRecvTask(&gwR);
-BrokerSendTask th4 = BrokerSendTask(&gwR);
+#endif  /*  DEFINES_H_  */

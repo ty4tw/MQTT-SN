@@ -97,7 +97,7 @@ bool TCPStack::bind ( const char* service ){
 	}
 	int err = getaddrinfo(0, service, &hints, &_addrinfo);
     if (err) {
-        printf("getaddrinfo(): %s\n", gai_strerror(err));
+    	LOGWRITE("getaddrinfo(): %s\n", gai_strerror(err));
         return false;
     }
 
@@ -140,24 +140,11 @@ bool TCPStack::accept ( TCPStack& new_socket ){
 }
 
 int TCPStack::send (const uint8_t* buf, uint16_t length  ){
-	int status = ::send ( _sockfd, buf, length, MSG_NOSIGNAL );
-	if( status == -1){
-		printf("errno == %d in Socket::send\n", errno);
-	}
-	return status;
+	return ::send ( _sockfd, buf, length, MSG_NOSIGNAL );
 }
 
 int TCPStack::recv ( uint8_t* buf, uint16_t len ){
-	int status = ::recv ( _sockfd, buf, len, 0 );
-
-	if ( status == -1 )	{
-		printf("errno == %d in Socket::recv\n", errno);
-	    return -1;
-	}else if ( status == 0 ){
-	    return 0;
-	}else{
-	    return status;
-	}
+	return ::recv ( _sockfd, buf, len, 0 );
 }
 
 
@@ -175,7 +162,7 @@ bool TCPStack::connect ( const char* host, const char* service ){
 	}
 	int err = getaddrinfo(host, service, &hints, &_addrinfo);
     if (err) {
-        printf("getaddrinfo(): %s\n", gai_strerror(err));
+    	LOGWRITE("getaddrinfo(): %s\n", gai_strerror(err));
         return false;
     }
 

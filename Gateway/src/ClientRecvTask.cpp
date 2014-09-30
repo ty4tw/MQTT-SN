@@ -38,13 +38,14 @@
 #include "lib/ProcessFramework.h"
 #include "lib/Messages.h"
 #include "lib/ZBStack.h"
-#include "lib/ErrorMessage.h"
+#include "ErrorMessage.h"
 
 
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 
 ClientRecvTask::ClientRecvTask(GatewayResourcesProvider* res){
 	_res = res;
@@ -61,9 +62,13 @@ void ClientRecvTask::run(){
 
 #ifdef NETWORK_XBEE
 	XBeeConfig config;
+	char param[TOMYFRAME_PARAM_MAX];
+
 	config.baudrate = B57600;
-	config.device = _res->getArgv('d');
 	config.flag = O_RDONLY;
+	if(_res->getParam("SerialDevice",param) == 0){
+		config.device = strdup(param);
+	}
 
 	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST);
 	_network = new Network();
@@ -71,9 +76,20 @@ void ClientRecvTask::run(){
 
 #ifdef NETWORK_UDP
 	UdpConfig config;
-	config.ipAddress = _res->getArgv('g');
-	config.gPortNo = atoi(_res->getArgv('p'));
-	config.uPortNo = atoi(_res->getArgv('u'));
+	char* param = 0;
+
+	if(_res->getArgv("BroadcastIP", param) == 0){
+		config.ipAddress = strdup(param);
+	}
+
+	if(_res->getParam("BrokerPortNo",param) == 0){
+		config.gPortNo = atoi(param);
+	}
+
+	if(_res->getParam("GatewayPortNo",param) == 0){
+		config.uPortNo = atoi(port);
+	}
+
 	_network = _res->getNetwork();
 #endif
 
@@ -87,7 +103,7 @@ void ClientRecvTask::run(){
 
 
 	if(_network->initialize(config) < 0){
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_02, "can't open the client port.");  // ABORT
+		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT
 	}
 
 	while(true){
@@ -117,7 +133,7 @@ void ClientRecvTask::run(){
 
 					if(!node){
 						delete ev;
-						printf("Client is not authorized.\n");
+						LOGWRITE("Client is not authorized.\n");
 						continue;
 					}
 

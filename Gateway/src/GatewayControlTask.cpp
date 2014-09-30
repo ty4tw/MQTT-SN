@@ -42,7 +42,7 @@
 #include "GatewayResourcesProvider.h"
 #include "GatewayDefines.h"
 #include "lib/Messages.h"
-#include "lib/ErrorMessage.h"
+#include "ErrorMessage.h"
 
 extern char* currentDateTime();
 extern uint16_t getUint16(uint8_t* pos);
@@ -70,32 +70,37 @@ void GatewayControlTask::run(){
 	Timer advertiseTimer;
 	Timer sendUnixTimer;
 	Event* ev = 0;
+	char param[TOMYFRAME_PARAM_MAX];
 
-	_gatewayId = atoi(_res->getArgv('i'));
+	if( _res->getParam("GatewayID", param) == 0){
+		_gatewayId = atoi(param);
+	}else{
+		_gatewayId = 0;
+	}
 	if (_gatewayId == 0 || _gatewayId > 255){
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_05, "Invalid Gateway Id");  // ABORT
+		THROW_EXCEPTION(ExFatal, ERRNO_APL_04, "Invalid Gateway Id");  // ABORT
 	}
 
 	int keepAlive = KEEP_ALIVE_TIME;
-	if(_res->getArgv('k') != 0){
-		keepAlive =atoi( _res->getArgv('k'));
-		if (keepAlive > 65536){
-				THROW_EXCEPTION(ExFatal, ERRNO_SYS_06, "KeepAliveTime is grater than 65536 Secs");  // ABORT
-		}
+	if( _res->getParam("KeepAlive", param) == 0){
+		keepAlive =atoi(param);
+	}
+	if (keepAlive > 65536){
+			THROW_EXCEPTION(ExFatal, ERRNO_APL_05, "KeepAliveTime is grater than 65536 Secs");  // ABORT
 	}
 
-	if(_res->getArgv('l') != 0){
-		_loginId = _res->getArgv('l');
+	if(_res->getParam("LoginID", param) == 0){
+		_loginId = strdup(param);
 	}
-	if(_res->getArgv('w') != 0){
-		_password = _res->getArgv('w');
+	if(_res->getParam("Password", param) == 0){
+		_password = strdup(param);
 	}
 
 	_eventQue = _res->getGatewayEventQue();
 
 	advertiseTimer.start(keepAlive * 1000UL);
 
-	printf("%s TomyGateway start\n", currentDateTime());
+	LOGWRITE("%s TomyGateway start\n", currentDateTime());
 
 
 	while(true){
@@ -121,7 +126,7 @@ void GatewayControlTask::run(){
 				adv->setDuration(keepAlive);
 				Event* ev1 = new Event();
 				ev1->setEvent(adv);  //broadcast
-				printf(YELLOW_FORMAT2, currentDateTime(), "ADVERTISE", LEFTARROW, GATEWAY, msgPrint(adv));
+				LOGWRITE(YELLOW_FORMAT2, currentDateTime(), "ADVERTISE", LEFTARROW, GATEWAY, msgPrint(adv));
 
 				_res->getClientSendQue()->post(ev1);
 				advertiseTimer.start(keepAlive * 1000UL);
@@ -143,7 +148,7 @@ void GatewayControlTask::run(){
 
 				Event* ev1 = new Event();
 				ev1->setEvent(msg);
-				printf(YELLOW_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, GATEWAY, msgPrint(msg));
+				LOGWRITE(YELLOW_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, GATEWAY, msgPrint(msg));
 
 				_res->getClientSendQue()->post(ev1);
 				sendUnixTimer.stop();
@@ -153,7 +158,7 @@ void GatewayControlTask::run(){
 		/*------   Check  SEARCHGW & send GWINFO      ---------*/
 		else if(ev->getEventType() == EtBroadcast){
 			MQTTSnMessage* msg = ev->getMqttSnMessage();
-			printf(YELLOW_FORMAT2, currentDateTime(), "SERCHGW", LEFTARROW, CLIENT, msgPrint(msg));
+			LOGWRITE(YELLOW_FORMAT2, currentDateTime(), "SERCHGW", LEFTARROW, CLIENT, msgPrint(msg));
 
 			if(msg->getType() == MQTTSN_TYPE_SEARCHGW){
 				if(_res->getClientList()->getClientCount() <  MAX_CLIENT_NODES ){
@@ -161,7 +166,7 @@ void GatewayControlTask::run(){
 					gwinfo->setGwId(_gatewayId);
 					Event* ev1 = new Event();
 					ev1->setEvent(gwinfo);
-					printf(YELLOW_FORMAT1, currentDateTime(), "GWINFO", RIGHTARROW, CLIENT, msgPrint(gwinfo));
+					LOGWRITE(YELLOW_FORMAT1, currentDateTime(), "GWINFO", RIGHTARROW, CLIENT, msgPrint(gwinfo));
 
 					_res->getClientSendQue()->post(ev1);
 				}
@@ -203,7 +208,7 @@ void GatewayControlTask::run(){
 			}else if(msg->getType() == MQTTSN_TYPE_PUBCOMP){
 				handleSnPubComp(ev, clnode, msg);
 			}else{
-				printf("%s   Irregular ClientRecvMessage\n", currentDateTime());
+				LOGWRITE("%s   Irregular ClientRecvMessage\n", currentDateTime());
 			}
 
 		}
@@ -234,7 +239,7 @@ void GatewayControlTask::run(){
 			}else if(msg->getType() == MQTT_TYPE_PUBCOMP){
 				handlePubComp(ev, clnode, msg);
 			}else{
-				printf("%s   Irregular BrokerRecvMessage\n", currentDateTime());
+				LOGWRITE("%s   Irregular BrokerRecvMessage\n", currentDateTime());
 			}
 		}
 
@@ -251,7 +256,7 @@ void GatewayControlTask::run(){
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPublish(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(BLUE_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(BLUE_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnPublish* sPublish = new MQTTSnPublish();
 	MQTTPublish* mqMsg = new MQTTPublish();
@@ -305,7 +310,7 @@ void GatewayControlTask::handleSnPublish(Event* ev, ClientNode* clnode, MQTTSnMe
 
 			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
-			printf(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sPuback));
+			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sPuback));
 
 			_res->getClientSendQue()->post(ev1);  // Send PubAck INVALID_TOPIC_ID
 		}
@@ -317,7 +322,7 @@ void GatewayControlTask::handleSnPublish(Event* ev, ClientNode* clnode, MQTTSnMe
                 Upstream MQTTSnSubscribe
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnSubscribe(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
-	printf(FORMAT2, currentDateTime(), "SUBSCRIBE", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "SUBSCRIBE", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnSubscribe* sSubscribe = new MQTTSnSubscribe();
 	MQTTSubscribe* subscribe = new MQTTSubscribe();
@@ -355,7 +360,7 @@ void GatewayControlTask::handleSnSubscribe(Event* ev, ClientNode* clnode, MQTTSn
 
 				Event* evsuback = new Event();
 				evsuback->setClientSendEvent(clnode);
-				printf(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sSuback));
+				LOGWRITE(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sSuback));
 
 				_res->getClientSendQue()->post(evsuback);
 			}
@@ -372,7 +377,7 @@ void GatewayControlTask::handleSnSubscribe(Event* ev, ClientNode* clnode, MQTTSn
 				setUint32(buf,tm);
 
 				pub->setData(buf, 4);
-				printf(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(pub));
+				LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(pub));
 
 				clnode->setClientSendMessage(pub);
 
@@ -419,7 +424,7 @@ void GatewayControlTask::handleSnSubscribe(Event* ev, ClientNode* clnode, MQTTSn
 
 			Event* evun = new Event();
 			evun->setClientSendEvent(clnode);
-			printf(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sSuback));
+			LOGWRITE(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sSuback));
 
 			_res->getClientSendQue()->post(evun);  // Send SUBACK to Client
 		}
@@ -433,7 +438,7 @@ void GatewayControlTask::handleSnSubscribe(Event* ev, ClientNode* clnode, MQTTSn
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnUnsubscribe(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT2, currentDateTime(), "UNSUBSCRIBE", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "UNSUBSCRIBE", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnUnsubscribe* sUnsubscribe = new MQTTSnUnsubscribe();
 	MQTTUnsubscribe* unsubscribe = new MQTTUnsubscribe();
@@ -474,7 +479,7 @@ uslbl1:
 
 		Event* evun = new Event();
 		evun->setClientSendEvent(clnode);
-		printf(FORMAT1, currentDateTime(), "UNSUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sUnsuback));
+		LOGWRITE(FORMAT1, currentDateTime(), "UNSUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(sUnsuback));
 
 		_res->getClientSendQue()->post(evun);  // Send UNSUBACK to Client
 	}
@@ -487,7 +492,7 @@ uslbl1:
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPingReq(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT2, currentDateTime(), "PINGREQ", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "PINGREQ", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTPingReq* pingReq = new MQTTPingReq();
 
@@ -503,7 +508,7 @@ void GatewayControlTask::handleSnPingReq(Event* ev, ClientNode* clnode, MQTTSnMe
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPubAck(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(GREEN_FORMAT1, currentDateTime(), "PUBACK", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnPubAck* sPubAck = new MQTTSnPubAck();
 	MQTTPubAck* pubAck = new MQTTPubAck();
@@ -523,7 +528,7 @@ void GatewayControlTask::handleSnPubAck(Event* ev, ClientNode* clnode, MQTTSnMes
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPubRec(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(GREEN_FORMAT1, currentDateTime(), "PUBREC", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREC", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnPubRec* sPubRec = new MQTTSnPubRec();
 	MQTTPubRec* pubRec = new MQTTPubRec();
@@ -543,7 +548,7 @@ void GatewayControlTask::handleSnPubRec(Event* ev, ClientNode* clnode, MQTTSnMes
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPubRel(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(GREEN_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnPubRel* sPubRel = new MQTTSnPubRel();
 	MQTTPubRel* pubRel = new MQTTPubRel();
@@ -563,7 +568,7 @@ void GatewayControlTask::handleSnPubRel(Event* ev, ClientNode* clnode, MQTTSnMes
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnPubComp(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(GREEN_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnPubComp* sPubComp= new MQTTSnPubComp();
 	MQTTPubComp* pubComp = new MQTTPubComp();
@@ -583,7 +588,7 @@ void GatewayControlTask::handleSnPubComp(Event* ev, ClientNode* clnode, MQTTSnMe
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT2, currentDateTime(), "CONNECT", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "CONNECT", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	Topics* topics = clnode->getTopics();
 	MQTTSnConnect* sConnect = new MQTTSnConnect();
@@ -616,7 +621,7 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 
 		clnode->setClientSendMessage(reqTopic);
 		evwr->setClientSendEvent(clnode);
-		printf(FORMAT1, currentDateTime(), "WILLTOPICREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqTopic));
+		LOGWRITE(FORMAT1, currentDateTime(), "WILLTOPICREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqTopic));
 
 		_res->getClientSendQue()->post(evwr);  // Send WILLTOPICREQ to Client
 	}else{
@@ -633,7 +638,7 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnWillTopic(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT1, currentDateTime(), "WILLTOPIC", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT1, currentDateTime(), "WILLTOPIC", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnWillTopic* snMsg = new MQTTSnWillTopic();
 	MQTTSnWillMsgReq* reqMsg = new MQTTSnWillMsgReq();
@@ -647,7 +652,7 @@ void GatewayControlTask::handleSnWillTopic(Event* ev, ClientNode* clnode, MQTTSn
 
 		Event* evt = new Event();
 		evt->setClientSendEvent(clnode);
-		printf(FORMAT1, currentDateTime(), "WILLMSGREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqMsg));
+		LOGWRITE(FORMAT1, currentDateTime(), "WILLMSGREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqMsg));
 
 		_res->getClientSendQue()->post(evt);  // Send WILLMSGREQ to Client
 	}
@@ -659,7 +664,7 @@ void GatewayControlTask::handleSnWillTopic(Event* ev, ClientNode* clnode, MQTTSn
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT1, currentDateTime(), "WILLMSG", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT1, currentDateTime(), "WILLMSG", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnWillMsg* snMsg = new MQTTSnWillMsg();
 	snMsg->absorb(msg);
@@ -681,7 +686,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 		clnode->setClientSendMessage(connack);
 		Event* ev1 = new Event();
 		ev1->setClientSendEvent(clnode);
-		printf(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
+		LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 
 		_res->getClientSendQue()->post(ev1);  // Send CONNACK REJECTED CONGESTION to Client
 
@@ -694,7 +699,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnDisconnect(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT2, currentDateTime(), "DISCONNECT", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "DISCONNECT", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnDisconnect* snMsg = new MQTTSnDisconnect();
 	MQTTDisconnect* mqMsg = new MQTTDisconnect();
@@ -715,7 +720,7 @@ void GatewayControlTask::handleSnDisconnect(Event* ev, ClientNode* clnode, MQTTS
  -------------------------------------------------------*/
 void GatewayControlTask::handleSnRegister(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
-	printf(FORMAT2, currentDateTime(), "REGISTER", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
+	LOGWRITE(FORMAT2, currentDateTime(), "REGISTER", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
 
 	MQTTSnRegister* snMsg = new MQTTSnRegister();
 	MQTTSnRegAck* respMsg = new MQTTSnRegAck();
@@ -732,7 +737,7 @@ void GatewayControlTask::handleSnRegister(Event* ev, ClientNode* clnode, MQTTSnM
 
 	Event* evrg = new Event();
 	evrg->setClientSendEvent(clnode);
-	printf(FORMAT1, currentDateTime(), "REGACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(respMsg));
+	LOGWRITE(FORMAT1, currentDateTime(), "REGACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(respMsg));
 
 	_res->getClientSendQue()->post(evrg);
 
@@ -753,7 +758,7 @@ void GatewayControlTask::handlePuback(Event* ev, ClientNode* clnode, MQTTMessage
 	MQTTSnPubAck* snMsg = clnode->getWaitedPubAck();
 
 	if(snMsg){
-		printf(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+		LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 		if(snMsg->getMsgId() == mqMsg->getMessageId()){
 			clnode->setWaitedPubAck(0);
@@ -772,7 +777,7 @@ void GatewayControlTask::handlePubRec(Event* ev, ClientNode* clnode, MQTTMessage
 	MQTTSnPubRec* snMsg = new MQTTSnPubRec();
 	MQTTPubRec* mqMsg = static_cast<MQTTPubRec*>(msg);
 	snMsg->setMsgId(mqMsg->getMessageId());
-	printf(BLUE_FORMAT1, currentDateTime(), "PUBREC", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBREC", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 	clnode->setClientSendMessage(snMsg);
 
 	Event* ev1 = new Event();
@@ -787,7 +792,7 @@ void GatewayControlTask::handlePubRel(Event* ev, ClientNode* clnode, MQTTMessage
 	MQTTSnPubRel* snMsg = new MQTTSnPubRel();
 	MQTTPubRel* mqMsg = static_cast<MQTTPubRel*>(msg);
 	snMsg->setMsgId(mqMsg->getMessageId());
-	printf(BLUE_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 	clnode->setClientSendMessage(snMsg);
 
 	Event* ev1 = new Event();
@@ -802,7 +807,7 @@ void GatewayControlTask::handlePubComp(Event* ev, ClientNode* clnode, MQTTMessag
 	MQTTSnPubComp* snMsg = new MQTTSnPubComp();
 	MQTTPubComp* mqMsg = static_cast<MQTTPubComp*>(msg);
 	snMsg->setMsgId(mqMsg->getMessageId());
-	printf(BLUE_FORMAT1, currentDateTime(), "PUBCOMP", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBCOMP", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 	clnode->setClientSendMessage(snMsg);
 
 	Event* ev1 = new Event();
@@ -818,7 +823,7 @@ void GatewayControlTask::handlePingresp(Event* ev, ClientNode* clnode, MQTTMessa
 
 	MQTTSnPingResp* snMsg = new MQTTSnPingResp();
 	//MQTTPingResp* mqMsg = static_cast<MQTTPingResp*>(msg);
-	printf(FORMAT1, currentDateTime(), "PINGRESP", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(FORMAT1, currentDateTime(), "PINGRESP", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 	clnode->setClientSendMessage(snMsg);
 
@@ -843,7 +848,7 @@ void GatewayControlTask::handleSuback(Event* ev, ClientNode* clnode, MQTTMessage
 				snMsg->setReturnCode(MQTTSN_RC_ACCEPTED);
 				snMsg->setQos(mqMsg->getGrantedQos());
 			}
-			printf(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+			LOGWRITE(FORMAT1, currentDateTime(), "SUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 			clnode->setClientSendMessage(snMsg);
 
@@ -863,7 +868,7 @@ void GatewayControlTask::handleUnsuback(Event* ev, ClientNode* clnode, MQTTMessa
 	MQTTSnUnsubAck* snMsg = new MQTTSnUnsubAck();
 
 	snMsg->setMsgId(mqMsg->getMessageId());
-	printf(FORMAT1, currentDateTime(), "UNSUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(FORMAT1, currentDateTime(), "UNSUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 	clnode->setClientSendMessage(snMsg);
 
@@ -891,7 +896,7 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 	}else{
 		snMsg->setReturnCode(MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
 	}
-	printf(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 	clnode->setClientSendMessage(snMsg);
 
@@ -907,7 +912,7 @@ void GatewayControlTask::handleDisconnect(Event* ev, ClientNode* clnode, MQTTMes
 	MQTTSnDisconnect* snMsg = new MQTTSnDisconnect();
 	//MQTTDisconnect* mqMsg = static_cast<MQTTDisconnect*>(msg);
 	clnode->setClientSendMessage(snMsg);
-	printf(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 	Event* ev1 = new Event();
 	ev1->setClientSendEvent(clnode);
@@ -940,14 +945,14 @@ void GatewayControlTask::handlePublish(Event* ev, ClientNode* clnode, MQTTMessag
 			MQTTSnRegister* regMsg = new MQTTSnRegister();
 			regMsg->setTopicId(tpId);
 			regMsg->setTopicName(tp);
-			printf(FORMAT2, currentDateTime(), "REGISTER", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(regMsg));
+			LOGWRITE(FORMAT2, currentDateTime(), "REGISTER", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(regMsg));
 
 			clnode->setClientSendMessage(regMsg);
 			Event* evrg = new Event();
 			evrg->setClientSendEvent(clnode);
 			_res->getClientSendQue()->post(evrg);   // Send Register first.
 		}else{
-			printf("GatewayControlTask Can't create Topic   %s\n", tp->c_str());
+			LOGWRITE("GatewayControlTask Can't create Topic   %s\n", tp->c_str());
 			return;
 		}
 	}
@@ -965,7 +970,7 @@ void GatewayControlTask::handlePublish(Event* ev, ClientNode* clnode, MQTTMessag
 		snMsg->setDup();
 	}
 	clnode->setClientSendMessage(snMsg);
-	printf(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
 	Event* ev1 = new Event();
 	ev1->setClientSendEvent(clnode);

@@ -36,12 +36,13 @@
 #include "GatewayResourcesProvider.h"
 #include "lib/ProcessFramework.h"
 #include "lib/Messages.h"
-#include "lib/ErrorMessage.h"
+#include "ErrorMessage.h"
 
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 ClientSendTask::ClientSendTask(GatewayResourcesProvider* res){
@@ -55,18 +56,20 @@ ClientSendTask::~ClientSendTask(){
 
 
 void ClientSendTask::run(){
+	char param[TOMYFRAME_PARAM_MAX];
 
 #ifdef NETWORK_XBEE
 	XBeeConfig config;
 	config.baudrate = B57600;
-	config.device = _res->getArgv('d');
 	config.flag = O_WRONLY;
-
+	if(_res->getParam("SerialDevice", param) == 0){
+		config.device = strdup(param);
+	}
 	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST);
 	_network = new Network();
 
 	if(_network->initialize(config) < 0){
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_02, "can't open the client port.");  // ABORT
+		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT
 	}
 #endif
 
