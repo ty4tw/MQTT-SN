@@ -56,9 +56,9 @@ ClientSendTask::~ClientSendTask(){
 
 
 void ClientSendTask::run(){
-	char param[TOMYFRAME_PARAM_MAX];
 
 #ifdef NETWORK_XBEE
+	char param[TOMYFRAME_PARAM_MAX];
 	XBeeConfig config;
 	config.baudrate = B57600;
 	config.flag = O_WRONLY;

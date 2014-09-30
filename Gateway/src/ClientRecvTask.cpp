@@ -76,9 +76,9 @@ void ClientRecvTask::run(){
 
 #ifdef NETWORK_UDP
 	UdpConfig config;
-	char* param = 0;
+	char param[TOMYFRAME_PARAM_MAX];
 
-	if(_res->getArgv("BroadcastIP", param) == 0){
+	if(_res->getParam("BroadcastIP", param) == 0){
 		config.ipAddress = strdup(param);
 	}
 
@@ -87,7 +87,7 @@ void ClientRecvTask::run(){
 	}
 
 	if(_res->getParam("GatewayPortNo",param) == 0){
-		config.uPortNo = atoi(port);
+		config.uPortNo = atoi(param);
 	}
 
 	_network = _res->getNetwork();
