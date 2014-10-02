@@ -794,6 +794,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 			}else{
 				setMsgRequestStatus(MQTTSN_MSG_REJECTED);
 			}
+			_topics.clearTopic();
 			_network->setGwAddress();
 		}
 /*---------  REGISTER  ----------*/

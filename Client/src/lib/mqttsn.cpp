@@ -1398,6 +1398,16 @@ void Topics::setSize(uint8_t size){
     _sizeMax = size;
 }
 
+void Topics::clearTopic(void){
+	for( int i = 0; i < _elmCnt; i++){
+		if ( _topics[i].getTopicId() >= MQTTSN_TOPICID_NORMAL) {
+			_elmCnt = i + 1;
+			break;
+		}
+	}
+}
+
+
 /*=====================================
         Class Payload
   =====================================*/

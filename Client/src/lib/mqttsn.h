@@ -656,6 +656,7 @@ public:
       void     addTopic(MQString* topic);
       Topic*    match(MQString* topic);
       void     setSize(uint8_t size);
+      void     clearTopic(void);
 
 private:
 
