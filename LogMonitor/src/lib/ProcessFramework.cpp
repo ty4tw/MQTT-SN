@@ -222,6 +222,15 @@ int Process::getParam(const char* parameter, char* value){
 				param[j++] = str[i++];
 			}
 			param[j] = '\0';
+
+		    for( i = strlen(param)-1; i >= 0 && isspace( param[i] ); i-- ) ;
+		    param[i+1] = '\0';
+		    for( i = 0; isspace( param[i] ); i++ ) ;
+		    if( i > 0 ) {
+		        j = 0;
+		        while( param[i] ) param[j++] = param[i++];
+		        param[j] = '\0';
+		    }
 			strcpy(value,param);
 			fclose(fp);
 			return 0;
@@ -585,8 +594,11 @@ void RingBuffer::put(char* data){
 			strncpy(_buffer, data + blen, dlen - blen);
 			if(*_end - *_start == 1){ // Buffer is empty.
 				*_start = *_end;
+				*_end = dlen - blen;
+			}else{
+				*_end = dlen - blen;
+				*_start = *_end + 1;
 			}
-			*_end = dlen - blen;
 		}
 	}else if(*_end == *_start){
 		if(dlen < blen){
@@ -601,6 +613,7 @@ void RingBuffer::put(char* data){
 		if(dlen < *_start - *_end){
 			strncpy(_buffer + *_end, data, dlen);
 			*_end += dlen;
+			*_start = *_end + 1;
 		}else {
 			if( dlen < blen){
 				strncpy(_buffer + *_end, data, dlen);
@@ -614,6 +627,7 @@ void RingBuffer::put(char* data){
 			}
 		}
 	}
+	printf("start=%d  end=%d\n", *_start, *_end);
 	_pmx->unlock();
 }
 
@@ -638,18 +652,18 @@ int RingBuffer::get(char* buf, int length){
 		int blen = *_length - *_start;
 		if(length > blen ){
 			strncpy(buf, _buffer + *_start, blen);
+			*_start = 0;
 			if(length - (blen + *_end) > 0){
 				strncpy(buf + blen , _buffer, *_end);
 				len = blen + *_end;
-				if(*_end == 0){
-					*_start = 0;
-				}else{
+				if(*_end > 0){
 					*_start = *_end - 1;
 				}
 			}else{
-				strncpy(buf + blen, _buffer, length - *_end );
-				len = blen + length - *_end ;
-				*_start = length - *_end;
+				printf("length=%d blen=%d len = %d\n", length, blen, length - *_end );
+				strncpy(buf + blen, _buffer, length - blen);
+				len = length;
+				*_start = length - blen;
 			}
 		}else{
 			strncpy(buf, _buffer + *_start, length);

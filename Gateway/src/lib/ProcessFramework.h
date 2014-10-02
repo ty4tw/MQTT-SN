@@ -66,6 +66,7 @@
 #define TOMYFRAME_RB_SEMAPHOR_NAME "/rbsemaphor"
 
 #define LOGWRITE theProcess->putLog
+//#define LOGWRITE theProcess->printf
 #define RINGBUFFER_SIZE 16384
 #define PROCESS_LOG_BUFFER_SIZE  2048
 
