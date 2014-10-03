@@ -123,6 +123,29 @@ How to connect XBee to Raspberry Pi
     XBee TX  ---> Raspberry Pi  Pin 10    
 
 
+How to connect Indicators and power off switch    
+----------------------    
+    Green LED   ---> Raspberry Pi  Pin 16  (Broker connected)    
+    RED   LED   ---> Raspberry Pi  Pin 18  (Broker disconnected)    
+    Blue  LED   ---> Raspberry Pi  Pin 22  (Sending/Receiving)    
+    PWR Off SW  ---> Raspberry Pi  Pin 11  (shutdown safely)   
+    
+    
+     Pin 11  -----+-----/\/\/\/----- +Vcc 3.3V    
+                  |       10K   
+                   |     
+                   |+ SW     
+                   |    
+                  |    
+                 GND     
+   
+
+How to monitor the Gateway    
+----------------------
+    $ sudo /home/gw/LogMonitor    
+
+    
+
 ###Contact
 
 
