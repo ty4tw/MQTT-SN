@@ -631,7 +631,6 @@ void RingBuffer::put(char* data){
 			}
 		}
 	}
-	printf("start=%d  end=%d\n", *_start, *_end);
 	_pmx->unlock();
 }
 
