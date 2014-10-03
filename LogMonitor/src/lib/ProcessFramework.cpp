@@ -473,7 +473,7 @@ Semaphore::Semaphore(unsigned int val){
 
 Semaphore::Semaphore(const char* name,unsigned int val){
 	_psem = sem_open(name, O_CREAT, 0666, val);
-	if(_psem < 0 ){
+	if(_psem == SEM_FAILED ){
 		perror("Semaphore");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_03, "Can't create a Semaphore.");
 	}
@@ -519,7 +519,11 @@ void Semaphore::timedwait(uint16_t millsec){
 	clock_gettime(CLOCK_REALTIME, &ts);
 	ts.tv_sec += millsec / 1000;
 	ts.tv_nsec = (millsec % 1000) * 1000000;
-	sem_timedwait(&_sem, &ts);
+	if(_psem){
+		sem_timedwait(_psem, &ts);
+	}else{
+		sem_timedwait(&_sem, &ts);
+	}
 }
 
 /*=========================================
