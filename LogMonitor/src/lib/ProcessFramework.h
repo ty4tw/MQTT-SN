@@ -66,16 +66,11 @@
 #define TOMYFRAME_RB_SEMAPHOR_NAME "/rbsemaphor"
 
 #define LOGWRITE theProcess->putLog
+//#define LOGWRITE printf
 #define RINGBUFFER_SIZE 16384
 #define PROCESS_LOG_BUFFER_SIZE  2048
 
-#define ERRNO_SYS_01  1   // can't allocate memory.
-#define ERRNO_SYS_02  2   // Can't create a shared memory
-#define ERRNO_SYS_03  3   // Can't create a Semaphore
-#define ERRNO_SYS_04  4   // Can't create a Mutex
-#define ERRNO_SYS_05  5   // No config file
-#define ERRNO_SYS_06  6   // Can't attach shared memory.
-
+#define ERRNO_SYS_01  1   // Application Frame Error
 
 using namespace std;
 
@@ -150,6 +145,7 @@ public:
 	~RingBuffer();
 	void put(char* buffer);
 	int get(char* buffer, int bufferLength);
+	void reset();
 private:
 	void* _shmaddr;
 	uint16_t* _length;
@@ -210,6 +206,8 @@ public:
 	char*  getArgv(char option);
 	int    getParam(const char* param, char* value);
 	void   putLog(const char* format, ...);
+	void   resetRingBuffer();
+	int    checkSignal();
 	const char*  getLog(void);
 private:
 	int _argc;

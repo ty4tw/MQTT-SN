@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified: 2014/09/05
+ *    Modified: 2014/10/15
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 1.0.0
+ *     Version: 1.0.1
  */
 
 #ifdef ARDUINO
@@ -794,7 +794,9 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 			}else{
 				setMsgRequestStatus(MQTTSN_MSG_REJECTED);
 			}
-			_topics.clearTopic();
+			if(isCleanSession()){
+				_topics.clearTopic();
+			}
 			_network->setGwAddress();
 		}
 /*---------  REGISTER  ----------*/

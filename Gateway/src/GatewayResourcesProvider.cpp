@@ -65,6 +65,7 @@ GatewayResourcesProvider* theGatewayResources = 0;
 GatewayResourcesProvider::GatewayResourcesProvider(): MultiTaskProcess(){
 	theMultiTask = this;
 	theProcess = this;
+	resetRingBuffer();
 	_lightIndicator.greenLight(false);
 }
 

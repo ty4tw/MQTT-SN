@@ -50,7 +50,8 @@
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <stdarg.h>
-
+#include <assert.h>
+#include <signal.h>
 
 using namespace std;
 extern const char* theCmdlineParameter;
@@ -61,9 +62,19 @@ extern int optind;
  ======================================*/
 Process* theProcess = 0;
 MultiTaskProcess* theMultiTask = 0;
+static volatile int theSignaled = 0;
+
+static void signalHandler(int sig){
+	assert(sig == SIGINT || sig == SIGHUP || sig == SIGTERM);
+	theSignaled = sig;
+}
 
 int main(int argc, char** argv){
 	try{
+		signal(SIGHUP, signalHandler);
+		signal(SIGINT, signalHandler);
+		signal(SIGTERM, signalHandler);
+
 		theProcess->initialize(argc, argv);
 		theProcess->run();
 	}catch(Exception& ex){
@@ -205,7 +216,7 @@ int Process::getParam(const char* parameter, char* value){
 
 	if ((fp = fopen(TOMYFRAME_CONFIG_FILE, "r")) == NULL) {
 		LOGWRITE("No config file:[%s]\n", TOMYFRAME_CONFIG_FILE);
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_05, "No config file.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "No config file.");
 		return -1;
 	}
 
@@ -265,6 +276,13 @@ const char* Process::getLog(){
 	return _rbdata;
 }
 
+void Process::resetRingBuffer(){
+	_rb->reset();
+}
+
+int Process::checkSignal(){
+	return theSignaled;
+}
 /*=====================================
          Class MultiTaskProcess
   ======================================*/
@@ -391,23 +409,23 @@ Mutex::Mutex(const char* fileName){
 
 	if((_shmid = shmget(key, sizeof(pthread_mutex_t), IPC_CREAT | 0666)) < 0){
 		perror("Mutex");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_02, "Can't create a shared memory.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 	}
 	_pmutex = (pthread_mutex_t*)shmat(_shmid, NULL, 0);
 	if(_pmutex  < 0 ){
 		perror("Mutex");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_06, "can't attach shared memory for Mutex.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "can't attach shared memory for Mutex.");
 	}
 
 	pthread_mutexattr_init(&attr);
 
 	if(pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED) != 0) {
 		perror("Mutex pthread_mutexattr_setpshared");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_04, "Can't create a Mutex.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Mutex.");
 	}
 	if(pthread_mutex_init(_pmutex, &attr) != 0) {
 		perror("Mutex pthread_mutexattr_setpshared");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_04, "Can't create a Mutex.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Mutex.");
 	}
 }
 
@@ -436,7 +454,7 @@ void Mutex::lock(void){
 			}
 		}catch(char* errmsg){
 			perror("Mutex");
-			THROW_EXCEPTION(ExFatal, ERRNO_SYS_04, "The same thread can't aquire a mutex twice.");
+			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "The same thread can't aquire a mutex twice.");
 		}
 	}
 }
@@ -452,7 +470,7 @@ void Mutex::unlock(void){
 			}
 		}catch(char* errmsg){
 			perror("Mutex");
-			THROW_EXCEPTION(ExFatal, ERRNO_SYS_04, "Can't release a mutex.");
+			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't release a mutex.");
 		}
 	}
 }
@@ -475,7 +493,7 @@ Semaphore::Semaphore(const char* name,unsigned int val){
 	_psem = sem_open(name, O_CREAT, 0666, val);
 	if(_psem == SEM_FAILED ){
 		perror("Semaphore");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_03, "Can't create a Semaphore.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Semaphore.");
 	}
 	_name = (char*)mqcalloc(strlen(name + 1));
 	strcpy(_name, name);
@@ -544,7 +562,7 @@ RingBuffer::RingBuffer(){
 			*_start = *_end = 0;
 		}else{
 			perror("RingBuffer");
-			THROW_EXCEPTION(ExFatal, ERRNO_SYS_06, "can't attach shared memory.");
+			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "can't attach shared memory.");
 		}
 	}else if((_shmid = shmget(key, RINGBUFFER_SIZE, IPC_CREAT | 0666)) >= 0){
 		if((_shmaddr = (uint16_t*)shmat(_shmid, NULL, 0)) > 0 ){
@@ -555,11 +573,11 @@ RingBuffer::RingBuffer(){
 			_createFlg = false;
 		}else{
 			perror("RingBuffer");
-			THROW_EXCEPTION(ExFatal, ERRNO_SYS_02, "Can't create a shared memory.");
+			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 		}
 	}else{
 		perror("RingBuffer");
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_02, "Can't create a shared memory.");
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 	}
 
 	_pmx = new Mutex(TOMYFRAME_RB_MUTEX_KEY);
@@ -676,6 +694,12 @@ int RingBuffer::get(char* buf, int length){
 	}
 	_pmx->unlock();
 	return len;
+}
+
+void RingBuffer::reset(){
+	_pmx->lock();
+	*_start = *_end = 0;
+	_pmx->unlock();
 }
 
 /*=====================================
