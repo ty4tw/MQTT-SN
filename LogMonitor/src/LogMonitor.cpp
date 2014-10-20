@@ -1,5 +1,5 @@
 /*
- * LogMonitorApp.cpp
+ * LogMonitor.cpp
  *
  *                      The BSD License
  *
@@ -32,14 +32,48 @@
  *      Author: Tomoaki YAMAGUCHI
  *     Version: 0.0.0
  */
+#ifndef LOGMONITOR_H_
+#define LOGMONITOR_H_
+
 #include "lib/ProcessFramework.h"
-#include "LogMonitor.h"
 
-/**************************************
- *       LogMonitor Application
- **************************************/
-const char* theCmdlineParameter = "";
+using namespace std;
 
-LogMonitor lp = LogMonitor();
+class LogMonitor:public Process{
+public:
+	LogMonitor();
+	~LogMonitor();
+	void initialize(int argc, char** argv);
+	void run();
+};
+
+
+LogMonitor::LogMonitor(){
+	theProcess = this;
+}
+
+LogMonitor::~LogMonitor(){
+
+}
+
+void LogMonitor::initialize(int argc, char** argv){
+	Process::initialize(0, NULL);
+}
+
+void LogMonitor::run(){
+	while(true){
+		const char* data = getLog();
+		printf("%s", data);
+		if(int rc = checkSignal()){
+			printf("\n\n\n");
+			THROW_EXCEPTION(ExInfo, rc, " Terminated normally\n");
+		}
+	}
+}
+
+
+#endif /* LOGMONITOR_H_ */
+
+
 
 

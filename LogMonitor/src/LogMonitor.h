@@ -1,5 +1,5 @@
 /*
- * LogMonitor.hpp
+ * LogMonitor.h
  *
  *                      The BSD License
  *
@@ -46,30 +46,6 @@ public:
 	void initialize(int argc, char** argv);
 	void run();
 };
-
-
-LogMonitor::LogMonitor(){
-	theProcess = this;
-}
-
-LogMonitor::~LogMonitor(){
-
-}
-
-void LogMonitor::initialize(int argc, char** argv){
-	Process::initialize(0, NULL);
-}
-
-void LogMonitor::run(){
-	while(true){
-		const char* data = getLog();
-		printf("%s", data);
-		if(int rc = checkSignal()){
-			printf("\n\n\n");
-			THROW_EXCEPTION(ExInfo, rc, " Terminated normally\n");
-		}
-	}
-}
 
 
 #endif /* LOGMONITOR_H_ */
