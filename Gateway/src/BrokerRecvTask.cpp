@@ -62,22 +62,24 @@ void BrokerRecvTask::run(){
 
 	LightIndicator* lightIndicator = _res->getLightIndicator();
 	ClientList* clist = _res->getClientList();
-	fd_set readfds;
+	fd_set rset;
+	fd_set wset;
 
 	while(true){
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 500000;    // 500 msec
-		FD_ZERO(&readfds);
+		FD_ZERO(&rset);
+		FD_ZERO(&wset);
 		int maxSock = 0;
 		int sockfd = 0;
 
 		/*------- Prepare socket list to check -------*/
 		for( int i = 0; i < clist->getClientCount(); i++){
 			if((*clist)[i]){
-				if((*clist)[i]->getSocket()->isValid()){
-					sockfd = (*clist)[i]->getSocket()->getSock();
-					FD_SET(sockfd, &readfds);
-
+				if((*clist)[i]->getStack()->isValid()){
+					sockfd = (*clist)[i]->getStack()->getSock();
+					FD_SET(sockfd, &rset);
+					FD_SET(sockfd, &wset);
 					if(sockfd > maxSock){
 						maxSock = sockfd;
 					}
@@ -86,27 +88,27 @@ void BrokerRecvTask::run(){
 				break;
 			}
 		}
+
 		if(maxSock == 0){
 			lightIndicator->greenLight(false);
-		}
+		}else{
 
-		/*------- Check socket to receive -------*/
-		int activity =  select( maxSock + 1 , &readfds , 0 , 0 , &timeout);
+			/*------- Check socket to receive -------*/
+			int activity =  select( maxSock + 1 , &rset , 0 , 0 , &timeout);
 
-		if (activity > 0){
-			for( int i = 0; i < clist->getClientCount(); i++){
-				if((*clist)[i]){
-					if((*clist)[i]->getSocket()->isValid()){
-						int sockfd = (*clist)[i]->getSocket()->getSock();
-						if(FD_ISSET(sockfd, &readfds)){
-
-							recvAndFireEvent((*clist)[i]);
-
-							lightIndicator->greenLight(true);
+			if (activity > 0){
+				for( int i = 0; i < clist->getClientCount(); i++){
+					if((*clist)[i]){
+						if((*clist)[i]->getStack()->isValid()){
+							int sockfd = (*clist)[i]->getStack()->getSock();
+							if(FD_ISSET(sockfd, &rset)){
+								recvAndFireEvent((*clist)[i]);
+								lightIndicator->greenLight(true);
+							}
 						}
+					}else{
+						break;
 					}
-				}else{
-					break;
 				}
 			}
 		}
@@ -122,14 +124,14 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 	uint8_t sbuff[SOCKET_MAXBUFFER_LENGTH * 5];
 	uint8_t buffer[SOCKET_MAXBUFFER_LENGTH];
 	memset(buffer, 0, SOCKET_MAXBUFFER_LENGTH);
-
+	int recvLength = 0;
 	uint8_t* packet = buffer;
 
-	int recvLength = clnode->getSocket()->recv(packet, SOCKET_MAXBUFFER_LENGTH);
+	recvLength = clnode->getStack()->recv(packet,SOCKET_MAXBUFFER_LENGTH);
 
 	if (recvLength == -1){
-		LOGWRITE(" Client : %s Broker Connection Error\n", clnode->getNodeId()->c_str());
-		clnode->updateStatus(Cstat_Disconnected);
+		LOGWRITE(" Client : %s Error: BrokerRecvTask can't Receive data from Broker\n", clnode->getNodeId()->c_str());
+		clnode->disconnected();
 	}
 
 	while(recvLength > 0){

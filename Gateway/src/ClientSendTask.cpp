@@ -60,17 +60,21 @@ void ClientSendTask::run(){
 #ifdef NETWORK_XBEE
 	char param[TOMYFRAME_PARAM_MAX];
 	XBeeConfig config;
+	bool secure = true;
+
 	config.baudrate = B57600;
 	config.flag = O_WRONLY;
 	if(_res->getParam("SerialDevice", param) == 0){
 		config.device = strdup(param);
 	}
-	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST);
+	if(_res->getParam("SecureConnection",param) == 0){
+		if(strcmp(param, "YES")){
+			secure = false;  // TCP
+		}
+	}
+	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST, secure);
 	_network = new Network();
 
-	if(_network->initialize(config) < 0){
-		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT
-	}
 #endif
 
 #ifdef NETWORK_UDP
@@ -80,6 +84,10 @@ void ClientSendTask::run(){
 #ifdef NETWORK_XXXXX
 	_network = _res->getNetwork();
 #endif
+
+	if(_network->initialize(config) < 0){
+		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT
+	}
 
 	while(true){
 		Event* ev = _res->getClientSendQue()->wait();

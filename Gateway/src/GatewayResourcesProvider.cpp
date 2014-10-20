@@ -72,6 +72,7 @@ GatewayResourcesProvider::GatewayResourcesProvider(): MultiTaskProcess(){
 GatewayResourcesProvider::~GatewayResourcesProvider(){
 	LOGWRITE("%s TomyGateway stop\n", currentDateTime());
 	_lightIndicator.greenLight(false);
+	_lightIndicator.redLightOff();
 }
 
 EventQue<Event>* GatewayResourcesProvider::getGatewayEventQue(){
@@ -102,6 +103,10 @@ LightIndicator* GatewayResourcesProvider::getLightIndicator(){
         Class Client
  =====================================*/
 ClientNode::ClientNode(){
+	ClientNode(false);
+}
+
+ClientNode::ClientNode(bool secure){
 	_msgId = 0;
 	_snMsgId = 0;
 	_status = Cstat_Disconnected;
@@ -116,7 +121,13 @@ ClientNode::ClientNode(){
 
 	_waitedPubAck = 0;
 	_waitedSubAck = 0;
-
+	if(secure){
+		_stack = new TLSStack(true);
+	}else{
+		_stack = new TLSStack(false);
+	}
+	_connAckSaveFlg = false;
+	_connAck = 0;
 }
 
 ClientNode::~ClientNode(){
@@ -129,6 +140,9 @@ ClientNode::~ClientNode(){
 	}
 	if(_waitedSubAck){
 		delete _waitedSubAck;
+	}
+	if(_stack){
+		delete _stack;
 	}
 }
 
@@ -185,8 +199,8 @@ MQTTConnect*   ClientNode::getConnectMessage(){
 	return _mqttConnect;
 }
 
-TCPStack* ClientNode::getSocket(){
-	return &_socket;
+TLSStack* ClientNode::getStack(){
+	return _stack;
 }
 
 
@@ -216,7 +230,7 @@ void ClientNode::setConnectMessage(MQTTConnect* msg){
 void ClientNode::checkTimeover(){
 	if(_status == Cstat_Active && _keepAliveTimer.isTimeup()){
 		_status = Cstat_Lost;
-		_socket.disconnect();
+		_stack->disconnect();
 	}
 }
 
@@ -226,18 +240,49 @@ void ClientNode::setKeepAlive(MQTTSnMessage* msg){
 	_keepAliveTimer.start(_keepAliveMsec * 1.5);
 }
 
+bool ClientNode::isConnectSendable(){
+	if(_status == Cstat_Connecting || _status == Cstat_TryConnecting){
+		return false;
+	}else{
+		return true;
+	}
+}
+
 void ClientNode::updateStatus(ClientStatus stat){
 	_status = stat;
+}
+
+void ClientNode::ConnectSended(){
+	if(_status == Cstat_TryConnecting){
+		_status = Cstat_Connecting;
+	}
+}
+
+void ClientNode::ConnectQued(){
+	if(_status == Cstat_Disconnected || _status == Cstat_Lost){
+		_status = Cstat_TryConnecting;
+	}
+}
+
+void ClientNode::disconnected(){
+	_status = Cstat_Disconnected;
+}
+
+void ClientNode::ConnackSended(int rc){
+	if(_status == Cstat_Connecting){
+		if(rc == MQTTSN_RC_ACCEPTED){
+			_status = Cstat_Active;
+		}else{
+			_status = Cstat_Disconnected;
+		}
+	}
 }
 
 void ClientNode::updateStatus(MQTTSnMessage* msg){
 	if(((_status == Cstat_Disconnected) || (_status == Cstat_Lost)) && 
          msg->getType() == MQTTSN_TYPE_CONNECT){
 		setKeepAlive(msg);
-		_status = Cstat_Connecting;
-		
-	}else if(_status == Cstat_Connecting && msg->getType() == MQTTSN_TYPE_CONNACK){
-		_status = Cstat_Active;
+		//_status = Cstat_TryConnecting;
 	}else if(_status == Cstat_Active){
 		switch(msg->getType()){
 		case MQTTSN_TYPE_PINGREQ:
@@ -286,6 +331,32 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 				break;
 		}
 	}
+}
+
+int  ClientNode::checkConnAck(MQTTSnConnack* msg){
+	if(_connAckSaveFlg){
+		_connAck = msg;
+		return -1;
+	}else{
+		return 0;
+	}
+}
+
+int  ClientNode::checkGetConnAck(MQTTSnConnack* connAck){
+	if(_connAckSaveFlg && _connAck){
+		connAck =_connAck;
+		_connAckSaveFlg = 0;
+		_connAck = 0;
+		return 0;
+	}else{
+		connAck = 0;
+		return -1;
+	}
+}
+
+void ClientNode::setConnAckSaveFlg(){
+	_connAckSaveFlg = true;
+	_connAck = 0;
 }
 
 void ClientNode::deleteBrokerSendMessage(){
@@ -367,7 +438,7 @@ ClientList::~ClientList(){
 	_mutex.unlock();
 }
 
-void ClientList::authorize(const char* fname){
+void ClientList::authorize(const char* fname, bool secure){
 	FILE* fp;
 	char buf[258];
 	size_t pos;
@@ -392,7 +463,7 @@ void ClientList::authorize(const char* fname){
 				NWAddress64 addr64 = NWAddress64(msb, lsb);
 
 				string id = data.substr(pos + 1);
-				createNode(&addr64,0,&id);
+				createNode(secure, &addr64,0,&id);
 			}else{
 				LOGWRITE("Invalid address     %s\n",data.c_str());
 			}
@@ -403,7 +474,7 @@ void ClientList::authorize(const char* fname){
 	}
 }
 
-ClientNode* ClientList::createNode(NWAddress64* addr64, uint16_t addr16, string* nodeId){
+ClientNode* ClientList::createNode(bool secure, NWAddress64* addr64, uint16_t addr16, string* nodeId){
 	if(_clientCnt < MAX_CLIENT_NODES && !_authorize){
 		_mutex.lock();
 		vector<ClientNode*>::iterator client = _clientVector->begin();
@@ -414,7 +485,7 @@ ClientNode* ClientList::createNode(NWAddress64* addr64, uint16_t addr16, string*
 				++client;
 			}
 		}
-		ClientNode* node = new ClientNode();
+		ClientNode* node = new ClientNode(secure);
 		node->setClientAddress64(addr64);
 		node->setClientAddress16(addr16);
 		if (nodeId){
@@ -615,6 +686,10 @@ void LightIndicator::greenLight(bool on){
 	}
 }
 
+void LightIndicator::redLightOff(){
+	lit(LIGHT_INDICATOR_RED, 0);
+}
+
 void LightIndicator::blueLight(bool on){
 	if(on){
 		if(_blueStatus == 0){
@@ -634,7 +709,5 @@ void LightIndicator::lit(int gpioNo, int onoff){
 	if(_gpioAvailable){
 		digitalWrite(gpioNo,onoff);
 	}
-#else
-	D_NWSTACK("GPIO No = %u  ON/OFF = %u\n", gpioNo, onoff);
 #endif
 }

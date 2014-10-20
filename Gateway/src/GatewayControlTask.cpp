@@ -59,6 +59,7 @@ GatewayControlTask::GatewayControlTask(GatewayResourcesProvider* res){
 	_protocol = MQTT_PROTOCOL_VER4;
 	_loginId = "";
 	_password = "";
+	_secure = false;
 }
 
 GatewayControlTask::~GatewayControlTask(){
@@ -94,6 +95,12 @@ void GatewayControlTask::run(){
 	}
 	if(_res->getParam("Password", param) == 0){
 		_password = strdup(param);
+	}
+
+	if(_res->getParam("SecureConnection",param) == 0){
+		if(!strcasecmp(param, "YES")){
+			_secure = true;  // TLS
+		}
 	}
 
 	_eventQue = _res->getGatewayEventQue();
@@ -179,8 +186,9 @@ void GatewayControlTask::run(){
 
 			ClientNode* clnode = ev->getClientNode();
 			MQTTSnMessage* msg = clnode->getClientRecvMessage();
+
 			clnode->updateStatus(msg);
-			
+
 			if(msg->getType() == MQTTSN_TYPE_PUBLISH){
 				handleSnPublish(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_SUBSCRIBE){
@@ -191,12 +199,12 @@ void GatewayControlTask::run(){
 				handleSnPingReq(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_PUBACK){
 				handleSnPubAck(ev, clnode, msg);
-			}else if(msg->getType() == MQTTSN_TYPE_CONNECT){
-				handleSnConnect(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_WILLTOPIC){
 				handleSnWillTopic(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_WILLMSG){
 				handleSnWillMsg(ev, clnode, msg);
+			}else if(msg->getType() == MQTTSN_TYPE_CONNECT) {
+					handleSnConnect(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_DISCONNECT){
 				handleSnDisconnect(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_REGISTER){
@@ -589,46 +597,53 @@ void GatewayControlTask::handleSnPubComp(Event* ev, ClientNode* clnode, MQTTSnMe
 void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMessage* msg){
 
 	LOGWRITE(FORMAT2, currentDateTime(), "CONNECT", LEFTARROW, clnode->getNodeId()->c_str(), msgPrint(msg));
-
+	MQTTConnect* mqMsg = 0;
 	Topics* topics = clnode->getTopics();
 	MQTTSnConnect* sConnect = new MQTTSnConnect();
-	MQTTConnect* mqMsg = new MQTTConnect();
-	mqMsg->setProtocol(_protocol);
 	sConnect->absorb(msg);
 
-	mqMsg->setClientId(clnode->getNodeId());
-	mqMsg->setKeepAliveTime(sConnect->getDuration());
+	if(clnode->isConnectSendable()){
+		mqMsg = new MQTTConnect();
 
-	if(_loginId != "" && _password != ""){
-		mqMsg->setUserName(&_loginId);
-		mqMsg->setPassword(&_password);
-	}
-	clnode->setConnectMessage(mqMsg);
+		mqMsg->setProtocol(_protocol);
+		mqMsg->setClientId(clnode->getNodeId());
+		mqMsg->setKeepAliveTime(sConnect->getDuration());
 
-	if(sConnect->isCleanSession()){
-		if(topics){
-			delete topics;
+		if(_loginId != "" && _password != ""){
+			mqMsg->setUserName(&_loginId);
+			mqMsg->setPassword(&_password);
 		}
-		topics = new Topics();
-		clnode->setTopics(topics);
-		mqMsg->setCleanSessionFlg();
+		clnode->setConnectMessage(mqMsg);
+
+		if(sConnect->isCleanSession()){
+			if(topics){
+				delete topics;
+			}
+			topics = new Topics();
+			clnode->setTopics(topics);
+			mqMsg->setCleanSessionFlg();
+		}
 	}
 
 	if(sConnect->isWillRequired()){
 		MQTTSnWillTopicReq* reqTopic = new MQTTSnWillTopicReq();
-
 		Event* evwr = new Event();
 
 		clnode->setClientSendMessage(reqTopic);
 		evwr->setClientSendEvent(clnode);
 		LOGWRITE(FORMAT1, currentDateTime(), "WILLTOPICREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqTopic));
-
+		if(!clnode->isConnectSendable()){
+			clnode->setConnAckSaveFlg();
+		}
 		_res->getClientSendQue()->post(evwr);  // Send WILLTOPICREQ to Client
 	}else{
-		Event* ev1 = new Event();
-		clnode->setBrokerSendMessage(clnode->getConnectMessage());
-		ev1->setBrokerSendEvent(clnode);
-		_res->getBrokerSendQue()->post(ev1);
+		if(clnode->isConnectSendable()){
+			Event* ev1 = new Event();
+			clnode->setBrokerSendMessage(mqMsg);
+			ev1->setBrokerSendEvent(clnode);
+			clnode->ConnectQued();
+			_res->getBrokerSendQue()->post(ev1);
+		}
 	}
 	delete sConnect;
 }
@@ -647,15 +662,15 @@ void GatewayControlTask::handleSnWillTopic(Event* ev, ClientNode* clnode, MQTTSn
 	if(clnode->getConnectMessage()){
 		clnode->getConnectMessage()->setWillTopic(snMsg->getWillTopic());
 		clnode->getConnectMessage()->setWillQos(snMsg->getQos());
-
-		clnode->setClientSendMessage(reqMsg);
-
-		Event* evt = new Event();
-		evt->setClientSendEvent(clnode);
-		LOGWRITE(FORMAT1, currentDateTime(), "WILLMSGREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqMsg));
-
-		_res->getClientSendQue()->post(evt);  // Send WILLMSGREQ to Client
 	}
+
+	clnode->setClientSendMessage(reqMsg);
+	Event* evt = new Event();
+	evt->setClientSendEvent(clnode);
+	LOGWRITE(FORMAT1, currentDateTime(), "WILLMSGREQ", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(reqMsg));
+
+	_res->getClientSendQue()->post(evt);  // Send WILLMSGREQ to Client
+
 	delete snMsg;
 }
 
@@ -669,27 +684,33 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 	MQTTSnWillMsg* snMsg = new MQTTSnWillMsg();
 	snMsg->absorb(msg);
 
-	if(clnode->getConnectMessage()){
+	if(clnode->getConnectMessage() && clnode->isConnectSendable()){
 		clnode->getConnectMessage()->setWillMessage(snMsg->getWillMsg());
 
 		clnode->setBrokerSendMessage(clnode->getConnectMessage());
 		clnode->setConnectMessage(0);
-
+		clnode->ConnectQued();
 		Event* ev1 = new Event();
 		ev1->setBrokerSendEvent(clnode);
 		_res->getBrokerSendQue()->post(ev1);
 
 	}else{
-		MQTTSnConnack* connack = new MQTTSnConnack();
-		connack->setReturnCode(MQTTSN_RC_REJECTED_CONGESTION);
-
-		clnode->setClientSendMessage(connack);
+		MQTTSnConnack* connack = 0;
 		Event* ev1 = new Event();
-		ev1->setClientSendEvent(clnode);
-		LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
-
-		_res->getClientSendQue()->post(ev1);  // Send CONNACK REJECTED CONGESTION to Client
-
+		if(clnode->checkGetConnAck(connack) == 0){
+			LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
+			clnode->setClientSendMessage(connack);
+			clnode->ConnackSended(connack->getReturnCode());
+			ev1->setClientSendEvent(clnode);
+			_res->getClientSendQue()->post(ev1);
+		}else if(!_secure){
+			connack = new MQTTSnConnack();
+			connack->setReturnCode(MQTTSN_RC_REJECTED_CONGESTION);
+			clnode->setClientSendMessage(connack);
+			ev1->setClientSendEvent(clnode);
+			LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
+			_res->getClientSendQue()->post(ev1);
+		}
 	}
 	delete snMsg;
 }
@@ -896,13 +917,15 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 	}else{
 		snMsg->setReturnCode(MQTTSN_RC_REJECTED_INVALID_TOPIC_ID);
 	}
-	LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	if( clnode->checkConnAck(snMsg) == 0){
+		LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
-	clnode->setClientSendMessage(snMsg);
-
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(clnode);
-	_res->getClientSendQue()->post(ev1);
+		clnode->setClientSendMessage(snMsg);
+		clnode->ConnackSended(snMsg->getReturnCode());
+		Event* ev1 = new Event();
+		ev1->setClientSendEvent(clnode);
+		_res->getClientSendQue()->post(ev1);
+	}
 }
 
 /*-------------------------------------------------------
@@ -995,7 +1018,6 @@ char*  GatewayControlTask::msgPrint(MQTTMessage* msg){
 	msg->serialize(sbuf);
 
 	for(int i = 0; i < msg->getRemainLength() + msg->getRemainLengthSize(); i++){
-		//sprintf(buf, " %02X", *( sbuf + msg->getRemainLengthSize() + i));
 		sprintf(buf, " %02X", *( sbuf + i));
 		buf += 3;
 	}

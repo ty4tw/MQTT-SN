@@ -49,12 +49,26 @@ extern char* currentDateTime();
 
 
 BrokerSendTask::BrokerSendTask(GatewayResourcesProvider* res){
+	char param[TOMYFRAME_PARAM_MAX];
+
 	_res = res;
 	_res->attach(this);
+	if(_res->getParam("BrokerName",param) == 0){
+		_host = strdup(param);
+	}
+	if(_res->getParam("BrokerPortNo",param) == 0){
+		_service =strdup( param);
+	}
+	_light = _res->getLightIndicator();
 }
 
 BrokerSendTask::~BrokerSendTask(){
-
+	if(_host){
+		delete _host;
+	}
+	if(_service){
+		delete _service;
+	}
 }
 
 
@@ -62,25 +76,11 @@ void BrokerSendTask::run(){
 	Event* ev = 0;
 	MQTTMessage* srcMsg = 0;
 	ClientNode* clnode = 0;
-	LightIndicator* light = _res->getLightIndicator();
-
-	uint8_t buffer[SOCKET_MAXBUFFER_LENGTH];
-
-	const char* host = BROKER_HOST_NAME;
-	const char* service = BROKER_PORT;
-	char param[TOMYFRAME_PARAM_MAX];
-
-	if(_res->getParam("BrokerName",param) == 0){
-			host = strdup(param);
-		}
-	if(_res->getParam("BrokerPortNo",param) == 0){
-		service =strdup( param);
-	}
 
 	while(true){
 
 		uint16_t length = 0;
-		memset(buffer, 0, SOCKET_MAXBUFFER_LENGTH);
+		memset(_buffer, 0, SOCKET_MAXBUFFER_LENGTH);
 
 		ev = _res->getBrokerSendQue()->wait();
 
@@ -89,95 +89,110 @@ void BrokerSendTask::run(){
 
 		if(srcMsg->getType() == MQTT_TYPE_PUBLISH){
 			MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
 			MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
 			MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
 			MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
 			MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
 			MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
-		}
-		else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				clnode->ConnectSended();
+				LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
-			length = msg->serialize(buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(buffer, msg));
+			length = msg->serialize(_buffer);
+			if(send(clnode, length) == 0){
+				LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(msg));
+			}
 		}
 
-		int rc = 0;
-
-		if(length > 0){
-			if( clnode->getSocket()->isValid()){
-				rc = clnode->getSocket()->send(buffer, length);
-				if(rc == -1){
-					LOGWRITE("Socket is valid. but can't send to the Broker. errno=%d\n", errno);
-					clnode->getSocket()->disconnect();
-				}else{
-					light->greenLight(true);
-				}
-			}else{
-				if(clnode->getSocket()->connect(host, service)){
-					rc = clnode->getSocket()->send(buffer, length);
-					if(rc == -1){
-						LOGWRITE("Socket is valid. but can't send to the Broker. errno=%d\n", errno);
-						clnode->getSocket()->disconnect();
-					}else{
-						light->greenLight(true);
-					}
-				}else{
-					LOGWRITE("%s Can't connect to the Broker.\n",
-							currentDateTime());
-				}
-			}
-			if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
-				clnode->getSocket()->disconnect();
-			}
+		if(length > 0 && srcMsg->getType() == MQTT_TYPE_DISCONNECT){
+			clnode->getStack()->disconnect();
 		}
 		delete ev;
 	}
 }
 
 
-char*  BrokerSendTask::msgPrint(uint8_t* buffer, MQTTMessage* msg){
-	char* buf = _printBuf;
-	_res->getLightIndicator()->blueLight(true);
+int BrokerSendTask::send(ClientNode* clnode, int length){
+	int rc = 0;
 
-	sprintf(buf, " %02X", *buffer);
+	if(length <= 0){
+		return -1;
+	}
+
+	if( clnode->getStack()->isValid()){
+		rc = clnode->getStack()->send(_buffer, length);
+		if(rc == -1){
+			LOGWRITE("Socket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
+			clnode->getStack()->disconnect();
+			return -1;
+		}else{
+			_light->greenLight(true);
+		}
+	}else{
+		if(clnode->getStack()->connect(_host, _service)){
+			rc = clnode->getStack()->send(_buffer, length);
+			if(rc == -1){
+				LOGWRITE("Socket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
+				clnode->getStack()->disconnect();
+				return -1;
+			}else{
+				_light->greenLight(true);
+			}
+		}else{
+			LOGWRITE("%s error: BrokerSendTask can't connect to the Broker.\n", currentDateTime());
+			return -1;
+		}
+	}
+	return 0;
+}
+
+char*  BrokerSendTask::msgPrint(MQTTMessage* msg){
+	char* buf = _printBuf;
+	_light->blueLight(true);
+
+	sprintf(buf, " %02X", *_buffer);
 	buf += 3;
 
 	for(int i = 0; i < msg->getRemainLength() + msg->getRemainLengthSize(); i++){
-		//sprintf(buf, " %02X", *( buffer + 1 + msg->getRemainLengthSize() + i));
-		sprintf(buf, " %02X", *( buffer + 1  + i));
+		sprintf(buf, " %02X", *( _buffer + 1  + i));
 		buf += 3;
 	}
 	*buf = 0;
-	_res->getLightIndicator()->blueLight(false);
+	_light->blueLight(false);
 	return _printBuf;
 }
 

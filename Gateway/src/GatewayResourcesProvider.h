@@ -38,8 +38,8 @@
 
 #include "lib/ProcessFramework.h"
 #include "lib/Messages.h"
-#include "lib/TCPStack.h"
 #include "lib/Topics.h"
+#include "lib/TLSStack.h"
 
 #define FILE_NAME_CLIENT_LIST "/usr/local/etc/tomygateway/config/clientList.conf"
 
@@ -61,6 +61,7 @@ private:
 
 enum ClientStatus {
 	Cstat_Disconnected = 0,
+	Cstat_TryConnecting,
 	Cstat_Connecting,
 	Cstat_Active,
 	Cstat_Asleep,
@@ -74,6 +75,7 @@ enum ClientStatus {
 class ClientNode{
 public:
 	ClientNode();
+	ClientNode(bool secure);
 	~ClientNode();
 
 	MQTTMessage*   getBrokerSendMessage();
@@ -101,11 +103,16 @@ public:
 	void checkTimeover();
 	void updateStatus(MQTTSnMessage*);
 	void updateStatus(ClientStatus);
+	void ConnectSended();
+	void ConnackSended(int rc);
+	void ConnectQued();
+	void disconnected();
+	bool isConnectSendable();
 	uint16_t getNextMessageId();
 	uint8_t getNextSnMsgId();
 	Topics* getTopics();
 
-	TCPStack* getSocket();
+	TLSStack* getStack();
 	NWAddress64* getAddress64Ptr();
 	uint16_t  getAddress16();
 	string* getNodeId();
@@ -115,6 +122,9 @@ public:
 	void setClientAddress64(NWAddress64* addr);
 	void setTopics(Topics* topics);
 	void setNodeId(string* id);
+	int  checkConnAck(MQTTSnConnack* msg);
+	int  checkGetConnAck(MQTTSnConnack* msg);
+	void setConnAckSaveFlg();
 
 private:
 	void setKeepAlive(MQTTSnMessage* msg);
@@ -136,11 +146,14 @@ private:
 	uint32_t _keepAliveMsec;
 	Timer _keepAliveTimer;
 
-	TCPStack _socket;
+	TLSStack* _stack;
 
 	NWAddress64 _address64;
     uint16_t _address16;
     string _nodeId;
+    bool _connAckSaveFlg;
+    MQTTSnConnack*  _connAck;
+
 };
 
 /*=====================================
@@ -150,10 +163,10 @@ class ClientList{
 public:
 	ClientList();
 	~ClientList();
-	void authorize(const char* fileName);
+	void authorize(const char* fileName, bool secure);
 	void erase(ClientNode*);
 	ClientNode* getClient(NWAddress64* addr64, uint16_t addr16);
-	ClientNode* createNode(NWAddress64* addr64, uint16_t addr16, string* nodeId = 0);
+	ClientNode* createNode(bool secure, NWAddress64* addr64, uint16_t addr16, string* nodeId = 0);
 	uint16_t getClientCount();
 	ClientNode* operator[](int);
 private:
@@ -207,6 +220,7 @@ public:
 	~LightIndicator();
 	void greenLight(bool);
 	void blueLight(bool);
+	void redLightOff();
 private:
 	void init();
 	void lit(int gpioNo, int onoff);

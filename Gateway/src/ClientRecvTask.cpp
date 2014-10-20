@@ -63,6 +63,8 @@ void ClientRecvTask::run(){
 #ifdef NETWORK_XBEE
 	XBeeConfig config;
 	char param[TOMYFRAME_PARAM_MAX];
+	bool secure = false;   // TCP
+
 
 	config.baudrate = B57600;
 	config.flag = O_RDONLY;
@@ -70,7 +72,13 @@ void ClientRecvTask::run(){
 		config.device = strdup(param);
 	}
 
-	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST);
+	if(_res->getParam("SecureConnection",param) == 0){
+		if(!strcasecmp(param, "YES")){
+			secure = true;  // TLS
+		}
+	}
+
+	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST, secure);
 	_network = new Network();
 #endif
 
@@ -120,14 +128,14 @@ void ClientRecvTask::run(){
 				if(resp->getMsgType() == MQTTSN_TYPE_CONNECT){
 
 				#ifdef NETWORK_XBEE
-					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),0);
+					ClientNode* node = _res->getClientList()->createNode(secure, resp->getClientAddress64(),0);
 				#endif
 				#ifdef NETWORK_UDP
-					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),
+					ClientNode* node = _res->getClientList()->createNode(secure, resp->getClientAddress64(),
 																	resp->getClientAddress16());
 				#endif
 				#ifdef NETWORK_XXXXX
-					ClientNode* node = _res->getClientList()->createNode(resp->getClientAddress64(),
+					ClientNode* node = _res->getClientList()->createNode(secure, resp->getClientAddress64(),
 																	resp->getClientAddress16());
 				#endif
 
@@ -144,7 +152,6 @@ void ClientRecvTask::run(){
 						node->setNodeId(msg->getClientId());
 					}
 					node->setClientRecvMessage(msg);
-
 					ev->setClientRecvEvent(node);
 				}else if(resp->getMsgType() == MQTTSN_TYPE_SEARCHGW){
 					MQTTSnSearchGw* msg = new MQTTSnSearchGw();

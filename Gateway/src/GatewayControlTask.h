@@ -58,6 +58,7 @@ private:
 	uint8_t _gatewayId;
 	string _loginId;
 	string _password;
+	bool _secure;
 
 	void handleClientMessage(Event*);
 	void handleBrokerMessage(Event*);

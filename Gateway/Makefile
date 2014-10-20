@@ -12,6 +12,7 @@ $(SRCDIR)/GatewayResourcesProvider.cpp \
 $(SUBDIR)/ProcessFramework.cpp \
 $(SUBDIR)/Messages.cpp \
 $(SUBDIR)/TCPStack.cpp \
+$(SUBDIR)/TLSStack.cpp \
 $(SUBDIR)/Topics.cpp \
 $(SUBDIR)/UDPStack.cpp \
 $(SUBDIR)/XXXXXStack.cpp \
@@ -22,8 +23,8 @@ CPPFLAGS +=
 DEFS :=
 LDFLAGS += 
 LIBS +=
-LDADD := -lpthread -lrt
-#LDADD := -lpthread -lrt -lwiringPi
+#LDADD := -lpthread -lrt -lssl -lcrypto
+DADD := -lpthread -lrt -lwiringPi -lssl -lcrypto
 
 CXXFLAGS := -Wall -O3
 

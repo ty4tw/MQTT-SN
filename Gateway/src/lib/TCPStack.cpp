@@ -41,10 +41,12 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <errno.h>
+
 using namespace std;
 
 /*========================================
-       Class Socket
+       Class TCPStack
  =======================================*/
 TCPStack::TCPStack(){
     _addrinfo = 0;
@@ -59,17 +61,13 @@ TCPStack::~TCPStack(){
 }
 
 bool TCPStack::isValid(){
-	if(!_disconReq && _sockfd > 0){
-		return true;
-	}else if(_disconReq && _sockfd > 0){
-		::close(_sockfd);
-		_sockfd = -1;
-    	_disconReq = false;
-    	if(_addrinfo){
-			freeaddrinfo(_addrinfo);
-			_addrinfo = 0;
+	if(_sockfd > 0){
+		if(_disconReq){
+			close();
+			_sem.post();
+		}else{
+			return true;
 		}
-		_sem.post();
 	}
 	return false;
 }
@@ -81,6 +79,17 @@ void TCPStack::disconnect(){
     }
 }
 
+void TCPStack::close(){
+	if(_sockfd > 0){
+		::close(_sockfd);
+		_sockfd = -1;
+		_disconReq = false;
+		if(_addrinfo){
+			freeaddrinfo(_addrinfo);
+			_addrinfo = 0;
+		}
+	}
+}
 
 bool TCPStack::bind ( const char* service ){
 	if(isValid()){
@@ -156,30 +165,34 @@ bool TCPStack::connect ( const char* host, const char* service ){
 	memset(&hints, 0, sizeof(addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-
 	if (_addrinfo){
 		freeaddrinfo(_addrinfo);
 	}
+
 	int err = getaddrinfo(host, service, &hints, &_addrinfo);
     if (err) {
     	LOGWRITE("getaddrinfo(): %s\n", gai_strerror(err));
         return false;
     }
 
-	_sockfd = socket(_addrinfo->ai_family, _addrinfo->ai_socktype, _addrinfo->ai_protocol);
-    if (_sockfd < 0){
+	int sockfd = socket(_addrinfo->ai_family, _addrinfo->ai_socktype, _addrinfo->ai_protocol);
+
+    if (sockfd < 0){
     	return false;
 	}
 	int on = 1;
-	if ( setsockopt ( _sockfd, SOL_SOCKET, SO_REUSEADDR, ( const char* ) &on, sizeof ( on ) ) == -1 ){
+
+	if ( setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, ( const char* ) &on, sizeof ( on ) ) == -1 ){
 		return false;
 	}
 
-	if( ::connect ( _sockfd, _addrinfo->ai_addr,  _addrinfo->ai_addrlen ) <0){
-		::close(_sockfd);
-		_sockfd = -1;
+	if( ::connect (sockfd, _addrinfo->ai_addr,  _addrinfo->ai_addrlen ) <0){
+		perror("TCPStack connect");
+		::close(sockfd);
 	    return false;
 	}
+
+	_sockfd = sockfd;
 	return true;
 }
 

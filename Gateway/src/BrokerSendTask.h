@@ -47,11 +47,17 @@ public:
 	~BrokerSendTask();
 
 	void run();
-	char* msgPrint(uint8_t* buffer, MQTTMessage* msg);
 
 private:
+	char* msgPrint(MQTTMessage* msg);
+	int   send(ClientNode* clnode, int length);
+
 	GatewayResourcesProvider* _res;
 	char _printBuf[SOCKET_MAXBUFFER_LENGTH * 5];
+	uint8_t _buffer[SOCKET_MAXBUFFER_LENGTH];
+	const char* _host;
+	const char* _service;
+	LightIndicator* _light;
 };
 
 

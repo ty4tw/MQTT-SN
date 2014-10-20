@@ -1,5 +1,5 @@
 /*
- * TCPStack.h
+ * TLSStack.h
  *
  *                      The BSD License
  *
@@ -33,58 +33,51 @@
  *     Version: 0.0.0
  */
 
-#ifndef TCPSTACK_H
-#define TCPSTACK_H
-
+#ifndef TLSSTACK_H
+#define TLSSTACK_H
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <unistd.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <string>
-#include <arpa/inet.h>
 #include "Defines.h"
 #include "Messages.h"
+#include "TCPStack.h"
 
-#define SOCKET_MAXCONNECTIONS  5
-#define SOCKET_MAXBUFFER_LENGTH 1280 // buffer size
+#define TLS_CA_DIR      "/etc/ssl/certs"
 
 using namespace std;
 
 /*========================================
-       Class TCPStack
+       Class TLSStack
  =======================================*/
-class TCPStack{
+class TLSStack:public TCPStack{
 public:
-	TCPStack();
-	virtual ~TCPStack();
-	void disconnect();
+	TLSStack();
+	TLSStack(bool secure);
+	virtual ~TLSStack();
 
-	// Server initialization
-	bool bind( const char* service );
-	bool listen();
-	bool accept( TCPStack& );
-
-	// Client initialization
 	bool connect( const char* host, const char* service );
-
+	void disconnect();
 	int send( const uint8_t* buf, uint16_t length );
 	int  recv ( uint8_t* buf, uint16_t len );
-	void close();
-
-	void setNonBlocking( const bool );
 
 	bool isValid();
-	int getSock(){return _sockfd;}
+	bool isSecure();
+	int  getSock();
+	SSL* getSSL();
 private:
-	int _sockfd;
-	addrinfo* _addrinfo;
-	Semaphore _sem;
-	bool   _disconReq;
+	static SSL_CTX* _ctx;
+	static int  _numOfInstance;
+	static SSL_SESSION* _session;
 
+	SSL*     _ssl;
+	bool   _secureFlg;
+	bool   _disconReq;
+	Mutex _mutex;
+	bool  _busy;
 };
 
 
 
-#endif /* TCPSTACK_H */
+#endif /* TLSSTACK_H */
