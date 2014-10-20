@@ -33,7 +33,7 @@
  *     Version: 0.0.0
  */
 #include "lib/ProcessFramework.h"
-#include "LogMonitor.cpp"
+#include "LogMonitor.hpp"
 
 /**************************************
  *       LogMonitor Application

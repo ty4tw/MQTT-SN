@@ -27,16 +27,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 2014/10/01
+ *  Created on: 2014/06/01
  *    Modified:
  *      Author: Tomoaki YAMAGUCHI
  *     Version: 0.0.0
  */
+#ifndef LOGMONITOR_H_
+#define LOGMONITOR_H_
 
 #include "lib/ProcessFramework.h"
-#include "LogMonitor.h"
 
 using namespace std;
+
+class LogMonitor:public Process{
+public:
+	LogMonitor();
+	~LogMonitor();
+	void initialize(int argc, char** argv);
+	void run();
+};
+
 
 LogMonitor::LogMonitor(){
 	theProcess = this;
@@ -54,7 +64,12 @@ void LogMonitor::run(){
 	while(true){
 		const char* data = getLog();
 		printf("%s", data);
+		if(int rc = checkSignal()){
+			printf("\n\n\n");
+			THROW_EXCEPTION(ExInfo, rc, " Terminated normally\n");
+		}
 	}
 }
 
 
+#endif /* LOGMONITOR_H_ */

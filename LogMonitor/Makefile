@@ -3,7 +3,7 @@ SRCDIR := src
 SUBDIR := src/lib
 
 SRCS := $(SRCDIR)/LogMonitorApp.cpp \
-$(SRCDIR)/LogMonitor.cpp \
+$(SRCDIR)/LogMonitor.hpp \
 $(SUBDIR)/ProcessFramework.cpp 
 
 CXX := g++
