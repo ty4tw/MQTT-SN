@@ -128,6 +128,7 @@ ClientNode::ClientNode(bool secure){
 	}
 	_connAckSaveFlg = false;
 	_connAck = 0;
+	_waitWillMsgFlg = false;
 }
 
 ClientNode::~ClientNode(){
@@ -343,11 +344,16 @@ int  ClientNode::checkConnAck(MQTTSnConnack* msg){
 }
 
 int  ClientNode::checkGetConnAck(MQTTSnConnack* connAck){
-	if(_connAckSaveFlg && _connAck){
-		connAck =_connAck;
-		_connAckSaveFlg = 0;
-		_connAck = 0;
-		return 0;
+	if(_connAckSaveFlg && _connAck ){
+		if(!_waitWillMsgFlg){
+			connAck =_connAck;
+			_connAckSaveFlg = 0;
+			_connAck = 0;
+			return 0;
+		}else{
+			_waitWillMsgFlg = false;
+			return -1;
+		}
 	}else{
 		connAck = 0;
 		return -1;
@@ -357,6 +363,10 @@ int  ClientNode::checkGetConnAck(MQTTSnConnack* connAck){
 void ClientNode::setConnAckSaveFlg(){
 	_connAckSaveFlg = true;
 	_connAck = 0;
+}
+
+void ClientNode::setWaitWillMessage(){
+	_waitWillMsgFlg = true;
 }
 
 void ClientNode::deleteBrokerSendMessage(){

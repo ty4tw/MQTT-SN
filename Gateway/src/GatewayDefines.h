@@ -86,7 +86,7 @@
  *   Line26 uncomment    LDADD := -lpthread -lrt -lwiringPi
  *
  ===========================================================*/
-#define RASPBERRY_LIGHT_INDICATOR
+//#define RASPBERRY_LIGHT_INDICATOR
 
 #define LIGHT_INDICATOR_GREEN   4    // RPi connector 16
 #define LIGHT_INDICATOR_RED     5    // RPi connector 18

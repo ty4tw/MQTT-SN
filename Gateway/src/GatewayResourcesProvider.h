@@ -125,6 +125,7 @@ public:
 	int  checkConnAck(MQTTSnConnack* msg);
 	int  checkGetConnAck(MQTTSnConnack* msg);
 	void setConnAckSaveFlg();
+	void setWaitWillMessage();
 
 private:
 	void setKeepAlive(MQTTSnMessage* msg);
@@ -152,6 +153,7 @@ private:
     uint16_t _address16;
     string _nodeId;
     bool _connAckSaveFlg;
+    bool _waitWillMsgFlg;
     MQTTSnConnack*  _connAck;
 
 };

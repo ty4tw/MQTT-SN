@@ -694,10 +694,13 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 		ev1->setBrokerSendEvent(clnode);
 		_res->getBrokerSendQue()->post(ev1);
 
+	}else if(!clnode->isConnectSendable()){
+		clnode->setWaitWillMessage();
 	}else{
 		MQTTSnConnack* connack = 0;
-		Event* ev1 = new Event();
+
 		if(clnode->checkGetConnAck(connack) == 0){
+			Event* ev1 = new Event();
 			LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 			clnode->setClientSendMessage(connack);
 			clnode->ConnackSended(connack->getReturnCode());
@@ -707,6 +710,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 			connack = new MQTTSnConnack();
 			connack->setReturnCode(MQTTSN_RC_REJECTED_CONGESTION);
 			clnode->setClientSendMessage(connack);
+			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
 			LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 			_res->getClientSendQue()->post(ev1);
