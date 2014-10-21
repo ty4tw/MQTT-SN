@@ -365,7 +365,7 @@ void ClientNode::setConnAckSaveFlg(){
 	_connAck = 0;
 }
 
-void ClientNode::setWaitWillMessage(){
+void ClientNode::setWaitWillMsgFlg(){
 	_waitWillMsgFlg = true;
 }
 

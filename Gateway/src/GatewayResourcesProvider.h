@@ -125,7 +125,7 @@ public:
 	int  checkConnAck(MQTTSnConnack* msg);
 	int  checkGetConnAck(MQTTSnConnack* msg);
 	void setConnAckSaveFlg();
-	void setWaitWillMessage();
+	void setWaitWillMsgFlg();
 
 private:
 	void setKeepAlive(MQTTSnMessage* msg);
