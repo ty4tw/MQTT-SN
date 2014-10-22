@@ -123,9 +123,11 @@ public:
 	void setTopics(Topics* topics);
 	void setNodeId(string* id);
 	int  checkConnAck(MQTTSnConnack* msg);
-	int  checkGetConnAck(MQTTSnConnack* msg);
+	MQTTSnConnack*  checkGetConnAck();
 	void setConnAckSaveFlg();
 	void setWaitWillMsgFlg();
+	bool isDisconnect();
+	bool isActive();
 
 private:
 	void setKeepAlive(MQTTSnMessage* msg);

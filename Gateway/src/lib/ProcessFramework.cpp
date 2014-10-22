@@ -72,7 +72,7 @@ static void signalHandler(int sig){
 int main(int argc, char** argv){
 	try{
 		signal(SIGHUP, signalHandler);
-		//signal(SIGINT, signalHandler);
+		signal(SIGINT, signalHandler);
 		signal(SIGTERM, signalHandler);
 
 		theProcess->initialize(argc, argv);
@@ -681,7 +681,6 @@ int RingBuffer::get(char* buf, int length){
 					*_start = *_end - 1;
 				}
 			}else{
-				//printf("length=%d blen=%d len = %d\n", length, blen, length - *_end );
 				strncpy(buf + blen, _buffer, length - blen);
 				len = length;
 				*_start = length - blen;

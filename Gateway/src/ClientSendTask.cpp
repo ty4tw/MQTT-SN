@@ -99,7 +99,6 @@ void ClientSendTask::run(){
 
 			_network->unicast(clnode->getAddress64Ptr(), clnode->getAddress16(),
 					msg.getMessagePtr(), msg.getMessageLength());
-
 		}else if(ev->getEventType() == EtBroadcast){
 			MQTTSnMessage msg = MQTTSnMessage();
 			msg.absorb( ev->getMqttSnMessage() );

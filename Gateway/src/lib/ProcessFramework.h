@@ -65,8 +65,8 @@
 #define TOMYFRAME_RB_MUTEX_KEY     "/usr/local/etc/tomygateway/config/rbmutex.key"
 #define TOMYFRAME_RB_SEMAPHOR_NAME "/rbsemaphor"
 
-#define LOGWRITE theProcess->putLog
-//#define LOGWRITE printf
+//#define LOGWRITE theProcess->putLog
+#define LOGWRITE printf
 #define RINGBUFFER_SIZE 16384
 #define PROCESS_LOG_BUFFER_SIZE  2048
 

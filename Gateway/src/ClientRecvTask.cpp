@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern char* currentDateTime();
+
 ClientRecvTask::ClientRecvTask(GatewayResourcesProvider* res){
 	_res = res;
 	_res->attach(this);
@@ -243,6 +245,7 @@ void ClientRecvTask::run(){
 
 				}else if(resp->getMsgType() == MQTTSN_TYPE_SEARCHGW){
 					MQTTSnSearchGw* msg = new MQTTSnSearchGw();
+					clnode->disconnected();
 					msg->absorb(resp);
 					ev->setEvent(msg);
 				}else{

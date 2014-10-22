@@ -126,9 +126,9 @@ void BrokerSendTask::run(){
 		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
 			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
 			if(send(clnode, length) == 0){
 				clnode->ConnectSended();
-				LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
@@ -158,6 +158,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 		if(rc == -1){
 			LOGWRITE("Socket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
 			clnode->getStack()->disconnect();
+			clnode->disconnected();
 			return -1;
 		}else{
 			_light->greenLight(true);
@@ -168,12 +169,15 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 			if(rc == -1){
 				LOGWRITE("Socket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
 				clnode->getStack()->disconnect();
+				clnode->disconnected();
 				return -1;
 			}else{
 				_light->greenLight(true);
 			}
 		}else{
 			LOGWRITE("%s error: BrokerSendTask can't connect to the Broker.\n", currentDateTime());
+			clnode->getStack()->disconnect();
+			clnode->disconnected();
 			return -1;
 		}
 	}

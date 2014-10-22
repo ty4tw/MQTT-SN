@@ -317,6 +317,8 @@ void TLSStack::disconnect(){
     if (_ssl){
     	_disconReq = true;
     	TCPStack::disconnect();
+    }else{
+    	TCPStack::disconnect();
     }
 }
 

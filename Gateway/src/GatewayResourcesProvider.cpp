@@ -267,6 +267,16 @@ void ClientNode::ConnectQued(){
 
 void ClientNode::disconnected(){
 	_status = Cstat_Disconnected;
+	_connAckSaveFlg = false;
+	_waitWillMsgFlg = false;
+}
+
+bool ClientNode::isDisconnect(){
+	return (_status == Cstat_Disconnected);
+}
+
+bool ClientNode::isActive(){
+	return (_status == Cstat_Active);
 }
 
 void ClientNode::ConnackSended(int rc){
@@ -274,7 +284,7 @@ void ClientNode::ConnackSended(int rc){
 		if(rc == MQTTSN_RC_ACCEPTED){
 			_status = Cstat_Active;
 		}else{
-			_status = Cstat_Disconnected;
+			disconnected();
 		}
 	}
 }
@@ -283,7 +293,6 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 	if(((_status == Cstat_Disconnected) || (_status == Cstat_Lost)) && 
          msg->getType() == MQTTSN_TYPE_CONNECT){
 		setKeepAlive(msg);
-		//_status = Cstat_TryConnecting;
 	}else if(_status == Cstat_Active){
 		switch(msg->getType()){
 		case MQTTSN_TYPE_PINGREQ:
@@ -298,7 +307,7 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 				_status = Cstat_Asleep;
 				_keepAliveMsec = dcm->getDuration() * 1000UL;
 			}else{
-				_status = Cstat_Disconnected;
+				disconnected();
 			}
 		}
 			break;
@@ -323,7 +332,7 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 				setKeepAlive(msg);
 				break;
 			case MQTTSN_TYPE_DISCONNECT:
-				_status = Cstat_Disconnected;
+				disconnected();
 				break;
 			case MQTTSN_TYPE_PINGRESP:
 				_status = Cstat_Asleep;
@@ -335,7 +344,7 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 }
 
 int  ClientNode::checkConnAck(MQTTSnConnack* msg){
-	if(_connAckSaveFlg){
+	if(_connAckSaveFlg || _waitWillMsgFlg){
 		_connAck = msg;
 		return -1;
 	}else{
@@ -343,21 +352,19 @@ int  ClientNode::checkConnAck(MQTTSnConnack* msg){
 	}
 }
 
-int  ClientNode::checkGetConnAck(MQTTSnConnack* connAck){
-	if(_connAckSaveFlg && _connAck ){
-		if(!_waitWillMsgFlg){
-			connAck =_connAck;
-			_connAckSaveFlg = 0;
-			_connAck = 0;
-			return 0;
-		}else{
-			_waitWillMsgFlg = false;
-			return -1;
-		}
-	}else{
-		connAck = 0;
-		return -1;
+MQTTSnConnack*  ClientNode::checkGetConnAck(){
+	MQTTSnConnack* connAck = 0;
+
+	if(!_connAck){
+		_waitWillMsgFlg = true;
+	}else if(_connAckSaveFlg || _waitWillMsgFlg){
+		_connAckSaveFlg = 0;
+		_waitWillMsgFlg = false;
+		connAck = _connAck;
+		_connAck = 0;
+		return connAck;
 	}
+	return 0;
 }
 
 void ClientNode::setConnAckSaveFlg(){
