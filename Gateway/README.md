@@ -60,9 +60,9 @@ Usage
 
   Prepare Key files for semaphore and sheared memory.  file's contents is emply.     
 
-    /usr/local//etc/tomygateway/config/rbmutex.key    
-    /usr/local//etc/tomygateway/config/ringbuffer.key     
-    /usr/local//etc/tomygateway/config/semaphore.key    
+    /usr/local/etc/tomygateway/config/rbmutex.key    
+    /usr/local/etc/tomygateway/config/ringbuffer.key     
+    /usr/local/etc/tomygateway/config/semaphore.key    
 
   Execute      
         $ TomyGateway     
