@@ -1505,7 +1505,7 @@ int8_t Payload::set_int32(int32_t val){
 	if((val > -32) && (val < 0)){
 		*_pos++ = val | MSGPACK_NEGINT;
 	}else if((val >= 0) && (val < 128)){
-		*_pos++ = val | MSGPACK_POSINT;
+		*_pos++ = val;
 	}else if(val > -128 && val < 128){
 		*_pos++ = MSGPACK_INT8;
 		*_pos++ = (uint8_t)val;
@@ -1555,9 +1555,37 @@ int8_t Payload::set_str(const char* val){
 	return 0;
 }
 
+int8_t Payload::set_array(uint8_t val){
+	if(getAvailableLength() < (uint16_t)val+ 1){
+		return -1;
+	}
+	if(val < 16){
+		*_pos++ = MSGPACK_ARRAY15 | val;
+	}else{
+		*_pos++ = MSGPACK_ARRAY16;
+		setUint16(_pos,(uint16_t)val);
+		_pos += 2;
+	}
+	_elmCnt++;
+	return 0;
+}
+
 /*======================
  *     getter
  ======================*/
+uint8_t Payload::getArray(uint8_t index){
+	uint8_t rc = 0;
+	uint8_t* val = getBufferPos(index);
+	if(val != 0){
+		if(*val == MSGPACK_ARRAY15){
+			rc = *val & 0x0F;
+		}else if(*val == MSGPACK_ARRAY16){
+			rc = (uint8_t)getUint16(val + 1);
+		}
+	}
+	return rc;
+}
+
 uint32_t Payload::get_uint32(uint8_t index){
 	uint32_t rc = 0;
 	uint8_t* val = getBufferPos(index);
@@ -1647,6 +1675,7 @@ uint8_t* Payload::getBufferPos(uint8_t index){
 			break;
 		case MSGPACK_UINT16:
 		case MSGPACK_INT16:
+		case MSGPACK_ARRAY16:
 			pos += 3;
 			break;
 		case MSGPACK_UINT32:
@@ -1661,8 +1690,9 @@ uint8_t* Payload::getBufferPos(uint8_t index){
 			pos += getUint16(pos + 1) + 3;
 			break;
 		default:
-			if(((*pos & MSGPACK_POSINT) !=  MSGPACK_POSINT) ||
-				((*pos & MSGPACK_NEGINT) == MSGPACK_NEGINT)) {
+			if((*pos < MSGPACK_POSINT) ||
+				((*pos & MSGPACK_NEGINT) == MSGPACK_NEGINT) ||
+				((*pos & MSGPACK_ARRAY15) == MSGPACK_ARRAY15)) {
 				pos++;
 			}else if((*pos & MSGPACK_FIXSTR) == MSGPACK_FIXSTR){
 				pos += *pos & (~MSGPACK_FIXSTR);

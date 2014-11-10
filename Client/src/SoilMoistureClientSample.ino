@@ -87,7 +87,6 @@ UDP_APP_CONFIG = {
  *------------------------------------------------------*/
 MQString* topic1 = new MQString("ty4tw/tp1");
 MQString* topic2 = new MQString("ty4tw/tp2");
-MQString* topic3 = new MQString("ty4tw/tp3");
 MQString* tpMeasure = new MQString("ty4tw/soilReg");
 /*------------------------------------------------------
  *             Tasks invoked by Timer
@@ -111,7 +110,8 @@ int measure(){
   if(soilR < 0){
     soilR = 9999;
   }
-  Payload pl(20);
+  Payload pl(30);
+  pl.set_array(3);
   pl.set_uint32(GETUTC());
   pl.set_int32(soilR);
   pl.set_str("Kohom");
@@ -120,7 +120,8 @@ int measure(){
 
 
 int task1(){
-  Payload pl = Payload(30);
+  Payload pl = Payload(36);
+  pl.set_array(9);
   pl.set_int32(30);
   pl.set_int32(255);
   pl.set_int32(70000);
@@ -130,40 +131,39 @@ int task1(){
   pl.set_int32(-300);
   pl.set_int32(-70000);
   pl.set_float(1000.01);
-  return PUBLISH(topic1,&pl,1);
+  return PUBLISH(topic1,&pl,QOS1);
 }
-
 
 /*---------------  List of task invoked by Timer ------------*/
 
 TASK_LIST = {  //{ MQString* topic, executing duration in second},
            {measure, 40},
            {task1,6},
-END_OF_TASK_LIST
-};
+           //{task2,6},
+END_OF_TASK_LIST};
 
 
 /*------------------------------------------------------
  *       Tasks invoked by PUBLISH command Packet
  *------------------------------------------------------*/
  TOPICS_IN_CALLBACK = {
-   topic3,
+
    END_OF_TOPICS
  };
  
-int on_publish1(MqttsnPublish* msg){
-  Payload pl;
-  pl.getPayload(msg);
-  PUBLISH(topic3,&pl,1);
-  return 0;
+
+int on_publish2(MqttsnPublish* msg){
+    theApplication->indicatorOff();
+    return 0;
 }
 
 /*------------ Link Callback to Topic -------------*/
 
 SUBSCRIBE_LIST = {
-  {topic1, on_publish1, QOS1},  
-  END_OF_SUBSCRIBE_LIST
-};
+                    //{topic1, on_publish1, QOS1},
+                    //{topic2, on_publish2, QOS1},
+
+END_OF_SUBSCRIBE_LIST};
 
 /*------------------------------------------------------
  *            Tasks invoked by INT0 interuption 

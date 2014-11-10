@@ -97,7 +97,7 @@ SerialPort::SerialPort(){
 	digitalWrite(XB_SLEEP_PIN, LOW);
 }
 
-int SerialPort::open(NETWORK_CONFIG config){ //Port num overload.
+int SerialPort::open(XBeeConfig config){ //Port num overload.
 	if (config.portNo == 0){
 	Serial.begin(config.baudrate);
 	_serialDev = (Stream*) &Serial;
@@ -182,7 +182,7 @@ void SerialPort::setBuff(void){
     }
 }
 
-int SerialPort::open(NETWORK_CONFIG config){
+int SerialPort::open(XBeeConfig config){
   _serialDev->baud(config.baudrate);
   _serialDev->format(8,Serial::None,1);
   _serialDev->attach(this, &SerialPort::setBuff,Serial::RxIrq);
@@ -242,7 +242,7 @@ SerialPort::~SerialPort(){
   }
 }
 
-int SerialPort::open(NETWORK_CONFIG config){
+int SerialPort::open(XBeeConfig config){
   return open(config.device, config.baudrate, false, 1);
 }
 
@@ -552,15 +552,13 @@ void NWRequest::setPayloadLength(uint8_t payLoadLength){
 
 
 /*===========================================
-              Class  ZBeeStack
+              Class  Network
  ============================================*/
 
 Network::Network(){
     _serialPort = new SerialPort();
     _rxCallbackPtr = 0;
     _returnCode = 0;
-    //_txRequest = NWRequest();
-    //_response = XBResponse();
     _response.setFrameDataPtr(_responsePayload);
     _tm.stop();
     _pos = 0;
@@ -576,7 +574,7 @@ Network::~Network(){
 	delete _serialPort;
 }
 
-int Network::initialize(NETWORK_CONFIG config){
+int Network::initialize(XBeeConfig config){
 	return _serialPort->open(config);
 }
 

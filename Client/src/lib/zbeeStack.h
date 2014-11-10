@@ -273,7 +273,7 @@ private:
 class SerialPort{
 public:
     SerialPort( );
-    int  open(NETWORK_CONFIG config);
+    int  open(XBeeConfig config);
     bool send(unsigned char b);
     bool recv(unsigned char* b);
     void flush();
@@ -297,7 +297,7 @@ class SerialPort{
 public:
     SerialPort();
     ~SerialPort();
-    int  open(NETWORK_CONFIG  config);
+    int  open(XBeeConfig  config);
     bool send(unsigned char b);
     bool recv(unsigned char* b);
     bool checkRecvBuf();

@@ -183,6 +183,8 @@
 #define MSGPACK_FIXSTR   0xa0
 #define MSGPACK_STR8     0xd9
 #define MSGPACK_STR16    0xda
+#define MSGPACK_ARRAY15  0x90
+#define MSGPACK_ARRAY16  0xdc
 #define MSGPACK_MAX_ELEMENTS   50   // Less than 256
 
 using namespace tomyClient;
@@ -669,8 +671,6 @@ private:
 /*=====================================
         Class Payload
   =====================================*/
-class MqttsnPublish;
-
 class Payload{
 public:
 	Payload();
@@ -682,7 +682,9 @@ public:
 	int8_t set_float(float val);
 	int8_t set_str(char* val);
 	int8_t set_str(const char* val);
+	int8_t set_array(uint8_t val);
 
+	uint8_t getArray(uint8_t index);
 	uint32_t get_uint32(uint8_t index);
 	int32_t  get_int32(uint8_t index);
     float    get_float(uint8_t index);

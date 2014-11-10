@@ -134,7 +134,10 @@ void IntHandleDummy(){
 /*--------------------------------
         reset Arduino
 ---------------------------------*/
-void (*resetArduino)(void) = 0;
+//void (*resetArduino)(void) = 0;
+void resetArduino(){
+	asm volatile("jmp 0000");
+}
 
 /*--------------------------------
         set UnixTime
