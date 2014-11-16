@@ -299,6 +299,10 @@ void ClientNode::updateStatus(MQTTSnMessage* msg){
 		case MQTTSN_TYPE_PUBLISH:
 		case MQTTSN_TYPE_SUBSCRIBE:
 		case MQTTSN_TYPE_UNSUBSCRIBE:
+		case MQTTSN_TYPE_PUBACK:
+		case MQTTSN_TYPE_PUBCOMP:
+		case MQTTSN_TYPE_PUBREL:
+		case MQTTSN_TYPE_PUBREC:
 			 _keepAliveTimer.start(_keepAliveMsec * 1.5);
 			 break;
 		case MQTTSN_TYPE_DISCONNECT:{

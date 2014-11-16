@@ -45,7 +45,6 @@ class BrokerSendTask : public Thread{
 public:
 	BrokerSendTask(GatewayResourcesProvider* res);
 	~BrokerSendTask();
-
 	void run();
 
 private:

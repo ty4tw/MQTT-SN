@@ -71,9 +71,9 @@ static void signalHandler(int sig){
 
 int main(int argc, char** argv){
 	try{
-		signal(SIGHUP, signalHandler);
+//		signal(SIGHUP, signalHandler);
 		signal(SIGINT, signalHandler);
-		signal(SIGTERM, signalHandler);
+//		signal(SIGTERM, signalHandler);
 
 		theProcess->initialize(argc, argv);
 		theProcess->run();

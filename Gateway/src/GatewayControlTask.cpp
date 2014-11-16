@@ -204,7 +204,7 @@ void GatewayControlTask::run(){
 			}else if(msg->getType() == MQTTSN_TYPE_WILLMSG){
 				handleSnWillMsg(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_CONNECT) {
-					handleSnConnect(ev, clnode, msg);
+				handleSnConnect(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_DISCONNECT){
 				handleSnDisconnect(ev, clnode, msg);
 			}else if(msg->getType() == MQTTSN_TYPE_REGISTER){
@@ -638,6 +638,7 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 		_res->getClientSendQue()->post(evwr);  // Send WILLTOPICREQ to Client
 	}else{
 		if(clnode->isConnectSendable()){
+			clnode->setConnectMessage(0);
 			Event* ev1 = new Event();
 			clnode->setBrokerSendMessage(mqMsg);
 			ev1->setBrokerSendEvent(clnode);
@@ -933,9 +934,8 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 	}
 	if( clnode->checkConnAck(snMsg) == 0){
 		LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
-
-		clnode->setClientSendMessage(snMsg);
 		clnode->ConnackSended(snMsg->getReturnCode());
+		clnode->setClientSendMessage(snMsg);
 		Event* ev1 = new Event();
 		ev1->setClientSendEvent(clnode);
 		_res->getClientSendQue()->post(ev1);

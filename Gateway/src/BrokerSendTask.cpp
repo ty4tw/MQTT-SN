@@ -49,17 +49,8 @@ extern char* currentDateTime();
 
 
 BrokerSendTask::BrokerSendTask(GatewayResourcesProvider* res){
-	char param[TOMYFRAME_PARAM_MAX];
-
 	_res = res;
 	_res->attach(this);
-	if(_res->getParam("BrokerName",param) == 0){
-		_host = strdup(param);
-	}
-	if(_res->getParam("BrokerPortNo",param) == 0){
-		_service =strdup( param);
-	}
-	_light = _res->getLightIndicator();
 }
 
 BrokerSendTask::~BrokerSendTask(){
@@ -71,11 +62,20 @@ BrokerSendTask::~BrokerSendTask(){
 	}
 }
 
-
 void BrokerSendTask::run(){
 	Event* ev = 0;
 	MQTTMessage* srcMsg = 0;
 	ClientNode* clnode = 0;
+	char param[TOMYFRAME_PARAM_MAX];
+
+		if(_res->getParam("BrokerName",param) == 0){
+			_host = strdup(param);
+		}
+		if(_res->getParam("BrokerPortNo",param) == 0){
+			_service =strdup( param);
+		}
+		_light = _res->getLightIndicator();
+
 
 	while(true){
 
@@ -126,8 +126,8 @@ void BrokerSendTask::run(){
 		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
 			length = msg->serialize(_buffer);
-			LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
 			if(send(clnode, length) == 0){
+				LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
 				clnode->ConnectSended();
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
@@ -136,11 +136,10 @@ void BrokerSendTask::run(){
 			if(send(clnode, length) == 0){
 				LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(msg));
 			}
+			clnode->getStack()->disconnect();
+
 		}
 
-		if(length > 0 && srcMsg->getType() == MQTT_TYPE_DISCONNECT){
-			clnode->getStack()->disconnect();
-		}
 		delete ev;
 	}
 }

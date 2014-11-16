@@ -46,7 +46,7 @@ class BrokerRecvTask : public Thread{
 public:
 	BrokerRecvTask(GatewayResourcesProvider* res);
 	~BrokerRecvTask();
-
+	void initialize();
 	void run();
 	char* msgPrint(uint8_t* buf, MQTTMessage* msg);
 
