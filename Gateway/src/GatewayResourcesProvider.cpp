@@ -192,6 +192,10 @@ MQTTSnMessage* ClientNode::getClientSendMessage(){
 	return _clientSendMessageQue.getMessage();
 }
 
+MQTTSnMessage* ClientNode::getClientSleepMessage(){
+	return _clientSleepMessageQue.getMessage();
+}
+
 MQTTSnMessage* ClientNode::getClientRecvMessage(){
 	return _clientRecvMessageQue.getMessage();
 }
@@ -221,6 +225,11 @@ void ClientNode::setClientSendMessage(MQTTSnMessage* msg){
 void ClientNode::setClientRecvMessage(MQTTSnMessage* msg){
 	updateStatus(msg);
 	_clientRecvMessageQue.push(msg);
+}
+
+void ClientNode::setClientSleepMessage(MQTTSnMessage* msg){
+	updateStatus(msg);
+	_clientSleepMessageQue.push(msg);
 }
 
 void ClientNode::setConnectMessage(MQTTConnect* msg){
@@ -253,13 +262,30 @@ void ClientNode::updateStatus(ClientStatus stat){
 	_status = stat;
 }
 
-void ClientNode::ConnectSended(){
+void ClientNode::connectSended(){
 	if(_status == Cstat_TryConnecting){
 		_status = Cstat_Connecting;
+		if(_mqttConnect){
+			delete _mqttConnect;
+		}
+		if(_waitedPubAck){
+			delete _waitedPubAck;
+		}
+		if(_waitedSubAck){
+			delete _waitedSubAck;
+		}
+		if(_connAck){
+			delete _connAck;
+		}
+		_mqttConnect = 0;
+		_waitedPubAck = 0;
+		_waitedSubAck = 0;
+		_connAck = 0;
+
 	}
 }
 
-void ClientNode::ConnectQued(){
+void ClientNode::connectQued(){
 	if(_status == Cstat_Disconnected || _status == Cstat_Lost){
 		_status = Cstat_TryConnecting;
 	}
@@ -279,7 +305,11 @@ bool ClientNode::isActive(){
 	return (_status == Cstat_Active);
 }
 
-void ClientNode::ConnackSended(int rc){
+bool ClientNode::isSleep(){
+	return (_status == Cstat_Asleep);
+}
+
+void ClientNode::connackSended(int rc){
 	if(_status == Cstat_Connecting){
 		if(rc == MQTTSN_RC_ACCEPTED){
 			_status = Cstat_Active;

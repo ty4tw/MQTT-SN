@@ -128,7 +128,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			if(send(clnode, length) == 0){
 				LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
-				clnode->ConnectSended();
+				clnode->connectSended();
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);

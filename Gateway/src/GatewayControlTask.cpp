@@ -107,7 +107,7 @@ void GatewayControlTask::run(){
 
 	advertiseTimer.start(keepAlive * 1000UL);
 
-	LOGWRITE("%s TomyGateway start\n", currentDateTime());
+	LOGWRITE("%s TomyGateway started %s\n", currentDateTime(),GATEWAY_VERSION);
 
 
 	while(true){
@@ -642,7 +642,7 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 			Event* ev1 = new Event();
 			clnode->setBrokerSendMessage(mqMsg);
 			ev1->setBrokerSendEvent(clnode);
-			clnode->ConnectQued();
+			clnode->connectQued();
 			_res->getBrokerSendQue()->post(ev1);
 		}
 	}
@@ -690,7 +690,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 
 		clnode->setBrokerSendMessage(clnode->getConnectMessage());
 		clnode->setConnectMessage(0);
-		clnode->ConnectQued();
+		clnode->connectQued();
 		Event* ev1 = new Event();
 		ev1->setBrokerSendEvent(clnode);
 		_res->getBrokerSendQue()->post(ev1);
@@ -703,7 +703,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 			clnode->setClientSendMessage(connack);
 			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
-			clnode->ConnackSended(connack->getReturnCode());
+			clnode->connackSended(connack->getReturnCode());
 			LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 			_res->getClientSendQue()->post(ev1);
 		}else{
@@ -712,7 +712,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 				LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 				Event* ev1 = new Event();
 				clnode->setClientSendMessage(connack);
-				clnode->ConnackSended(connack->getReturnCode());
+				clnode->connackSended(connack->getReturnCode());
 				ev1->setClientSendEvent(clnode);
 				_res->getClientSendQue()->post(ev1);
 			}else if(clnode->isDisconnect() || clnode->isActive()){
@@ -721,7 +721,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 				clnode->setClientSendMessage(connack);
 				Event* ev1 = new Event();
 				ev1->setClientSendEvent(clnode);
-				clnode->ConnackSended(connack->getReturnCode());
+				clnode->connackSended(connack->getReturnCode());
 				LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 				_res->getClientSendQue()->post(ev1);
 			}
@@ -793,17 +793,19 @@ void GatewayControlTask::handlePuback(Event* ev, ClientNode* clnode, MQTTMessage
 	MQTTPubAck* mqMsg = static_cast<MQTTPubAck*>(msg);
 	MQTTSnPubAck* snMsg = clnode->getWaitedPubAck();
 
-	if(snMsg){
-		LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+	LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
+	if(snMsg){
 		if(snMsg->getMsgId() == mqMsg->getMessageId()){
 			clnode->setWaitedPubAck(0);
 			clnode->setClientSendMessage(snMsg);
 			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
 			_res->getClientSendQue()->post(ev1);
+			return;
 		}
 	}
+	LOGWRITE("PUBACK MessageID is not the same as PUBLISH or PUBACK is not expected\n");
 }
 
 /*-------------------------------------------------------
@@ -934,11 +936,21 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 	}
 	if( clnode->checkConnAck(snMsg) == 0){
 		LOGWRITE(CYAN_FORMAT1, currentDateTime(), "CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
-		clnode->ConnackSended(snMsg->getReturnCode());
+		clnode->connackSended(snMsg->getReturnCode());
 		clnode->setClientSendMessage(snMsg);
 		Event* ev1 = new Event();
 		ev1->setClientSendEvent(clnode);
 		_res->getClientSendQue()->post(ev1);
+	}
+
+	// Send saved messages while sleeping
+	if(clnode->isActive()){
+		while(clnode->getClientSleepMessage()){
+			Event* ev1 = new Event();
+			clnode->setClientSendMessage(clnode->getClientSleepMessage());
+			ev1->setClientSendEvent(clnode);
+			_res->getClientSendQue()->post(ev1);
+		}
 	}
 }
 
@@ -982,12 +994,19 @@ void GatewayControlTask::handlePublish(Event* ev, ClientNode* clnode, MQTTMessag
 			MQTTSnRegister* regMsg = new MQTTSnRegister();
 			regMsg->setTopicId(tpId);
 			regMsg->setTopicName(tp);
-			LOGWRITE(FORMAT2, currentDateTime(), "REGISTER", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(regMsg));
-
-			clnode->setClientSendMessage(regMsg);
-			Event* evrg = new Event();
-			evrg->setClientSendEvent(clnode);
-			_res->getClientSendQue()->post(evrg);   // Send Register first.
+			if(clnode->isSleep()){
+				clnode->setClientSleepMessage(regMsg);
+				LOGWRITE(FORMAT2, currentDateTime(), "REGISTER", RIGHTARROW, clnode->getNodeId()->c_str(), "is sleeping. Message was saved.");
+			}else if(clnode->isActive()){
+				LOGWRITE(FORMAT2, currentDateTime(), "REGISTER", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(regMsg));
+				if(clnode->isSleep()){
+					clnode->setClientSleepMessage(regMsg);
+				}
+				clnode->setClientSendMessage(regMsg);
+				Event* evrg = new Event();
+				evrg->setClientSendEvent(clnode);
+				_res->getClientSendQue()->post(evrg);   // Send Register first.
+			}
 		}else{
 			LOGWRITE("GatewayControlTask Can't create Topic   %s\n", tp->c_str());
 			return;
@@ -1006,12 +1025,30 @@ void GatewayControlTask::handlePublish(Event* ev, ClientNode* clnode, MQTTMessag
 	if(mqMsg->isRetain()){
 		snMsg->setDup();
 	}
-	clnode->setClientSendMessage(snMsg);
-	LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
 
-	Event* ev1 = new Event();
-	ev1->setClientSendEvent(clnode);
-	_res->getClientSendQue()->post(ev1);
+	if(clnode->isSleep()){
+		clnode->setClientSleepMessage(snMsg);
+		LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), "is sleeping. Message was saved.");
+		if(snMsg->getQos() == MQTTSN_FLAG_QOS_1){
+			snMsg->setQos(MQTTSN_FLAG_QOS_0);
+			snMsg->setMsgId(0);
+
+			MQTTPubAck* pubAck = new MQTTPubAck();
+			pubAck->setMessageId(mqMsg->getMessageId());
+
+			clnode->setBrokerSendMessage(pubAck);
+			Event* ev1 = new Event();
+			ev1->setBrokerSendEvent(clnode);
+			_res->getBrokerSendQue()->post(ev1);
+		}
+	}else if(clnode->isActive()){
+		clnode->setClientSendMessage(snMsg);
+		LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(snMsg));
+
+		Event* ev1 = new Event();
+		ev1->setClientSendEvent(clnode);
+		_res->getClientSendQue()->post(ev1);
+	}
 
 }
 

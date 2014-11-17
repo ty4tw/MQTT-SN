@@ -42,6 +42,7 @@
 #include "lib/TLSStack.h"
 
 #define FILE_NAME_CLIENT_LIST "/usr/local/etc/tomygateway/config/clientList.conf"
+#define GATEWAY_VERSION "(Ver 1.0.1)"
 
 /*=====================================
         Class MessageQue
@@ -53,6 +54,7 @@ public:
 	T* getMessage();
 	void push(T*);
 	void pop();
+	bool empty();
 private:
 	queue<T*> _que;
 	Mutex  _mutex;
@@ -85,7 +87,7 @@ public:
 	MQTTConnect*   getConnectMessage();
 	MQTTSnPubAck*  getWaitedPubAck();
 	MQTTSnSubAck*  getWaitedSubAck();
-
+	MQTTSnMessage* getClientSleepMessage();
 
 	void setBrokerSendMessage(MQTTMessage*);
 	void setBrokerRecvMessage(MQTTMessage*);
@@ -94,6 +96,7 @@ public:
 	void setConnectMessage(MQTTConnect*);
 	void setWaitedPubAck(MQTTSnPubAck* msg);
 	void setWaitedSubAck(MQTTSnSubAck* msg);
+	void setClientSleepMessage(MQTTSnMessage*);
 
 	void deleteBrokerSendMessage();
 	void deleteBrokerRecvMessage();
@@ -103,9 +106,9 @@ public:
 	void checkTimeover();
 	void updateStatus(MQTTSnMessage*);
 	void updateStatus(ClientStatus);
-	void ConnectSended();
-	void ConnackSended(int rc);
-	void ConnectQued();
+	void connectSended();
+	void connackSended(int rc);
+	void connectQued();
 	void disconnected();
 	bool isConnectSendable();
 	uint16_t getNextMessageId();
@@ -128,6 +131,7 @@ public:
 	void setWaitWillMsgFlg();
 	bool isDisconnect();
 	bool isActive();
+	bool isSleep();
 
 private:
 	void setKeepAlive(MQTTSnMessage* msg);
@@ -136,6 +140,7 @@ private:
 	MessageQue<MQTTMessage>   _brokerRecvMessageQue;
 	MessageQue<MQTTSnMessage> _clientSendMessageQue;
 	MessageQue<MQTTSnMessage> _clientRecvMessageQue;
+	MessageQue<MQTTSnMessage> _clientSleepMessageQue;
 
 	MQTTConnect*   _mqttConnect;
 
