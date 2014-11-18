@@ -42,7 +42,7 @@
 #include "lib/TLSStack.h"
 
 #define FILE_NAME_CLIENT_LIST "/usr/local/etc/tomygateway/config/clientList.conf"
-#define GATEWAY_VERSION "(Ver 1.0.1)"
+#define GATEWAY_VERSION ("(Ver 1.0.2)")
 
 /*=====================================
         Class MessageQue
@@ -54,7 +54,7 @@ public:
 	T* getMessage();
 	void push(T*);
 	void pop();
-	bool empty();
+	void clear();
 private:
 	queue<T*> _que;
 	Mutex  _mutex;
@@ -271,12 +271,7 @@ template<class T> MessageQue<T>::MessageQue(){
 }
 
 template<class T> MessageQue<T>::~MessageQue(){
-	_mutex.lock();
-	while(!_que.empty()){
-		delete _que.front();
-		_que.pop();
-	}
-	_mutex.unlock();
+	clear();
 }
 
 template<class T> T* MessageQue<T>::getMessage(){
@@ -304,6 +299,15 @@ template<class T> void MessageQue<T>::pop(){
 		_que.pop();
 		_mutex.unlock();
 	}
+}
+
+template<class T> void MessageQue<T>::clear(){
+	_mutex.lock();
+	while(!_que.empty()){
+		delete _que.front();
+		_que.pop();
+	}
+	_mutex.unlock();
 }
 
 #endif /* GATEWAY_RESOURCES_PROVIDER_H_ */

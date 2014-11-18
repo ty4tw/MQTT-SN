@@ -640,9 +640,9 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 		if(clnode->isConnectSendable()){
 			clnode->setConnectMessage(0);
 			Event* ev1 = new Event();
+			clnode->connectQued();
 			clnode->setBrokerSendMessage(mqMsg);
 			ev1->setBrokerSendEvent(clnode);
-			clnode->connectQued();
 			_res->getBrokerSendQue()->post(ev1);
 		}
 	}
@@ -687,10 +687,10 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 
 	if(clnode->getConnectMessage() && clnode->isConnectSendable()){
 		clnode->getConnectMessage()->setWillMessage(snMsg->getWillMsg());
-
+		clnode->connectQued();
 		clnode->setBrokerSendMessage(clnode->getConnectMessage());
 		clnode->setConnectMessage(0);
-		clnode->connectQued();
+
 		Event* ev1 = new Event();
 		ev1->setBrokerSendEvent(clnode);
 		_res->getBrokerSendQue()->post(ev1);

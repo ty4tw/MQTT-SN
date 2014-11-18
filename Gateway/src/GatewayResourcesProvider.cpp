@@ -288,6 +288,7 @@ void ClientNode::connectSended(){
 void ClientNode::connectQued(){
 	if(_status == Cstat_Disconnected || _status == Cstat_Lost){
 		_status = Cstat_TryConnecting;
+		_brokerSendMessageQue.clear();
 	}
 }
 
