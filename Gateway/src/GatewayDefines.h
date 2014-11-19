@@ -39,13 +39,13 @@
 #define GATEWAY_VERSION "(Ver 1.0.3)"
 
 #define BROKER      "Broker"
-#define GREEN_BROKER "\x1b[1m\x1b[32mBroker"
+#define GREEN_BROKER "\x1b[1m\x1b[32mBroker\x1b[0m\x1b[39m"
 #define GATEWAY     "Gateway"
 #define CLIENT      "Client"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
-#define SEND_COMPLETE  "\x1b[1m\x1b[32m[Tx completed]\x1b[0m\x1b[39m"
-#define SEND_ERROR     "\x1b[1m\x1b[31m[Tx Error]\x1b[0m\x1b[39m"
+
+#define SEND_COMPLETE  "\x1b[1m\x1b[32m[Tx completed]\x1b[0m\x1b[39m\n"
 
 #define FORMAT      "%s   %-14s%-8s%-26s%s"
 #define FORMAT1     "%s   %-14s%-8s%-26s%s\n"
