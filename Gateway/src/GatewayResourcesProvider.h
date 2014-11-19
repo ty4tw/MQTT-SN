@@ -264,7 +264,7 @@ private:
 
 
 /*=====================================
-    Class MessageQue Implimentation
+    Class MessageQue Implementation
  =====================================*/
 template<class T> MessageQue<T>::MessageQue(){
 
