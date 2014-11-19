@@ -39,34 +39,34 @@
 #define GATEWAY_VERSION "(Ver 1.0.3)"
 
 #define BROKER      "Broker"
-#define GREEN_BROKER "\x1b[0m\x1b[32mBroker\x1b[0m\x1b[39m"
+#define GREEN_BROKER "\x1b[0m\x1b[32mBroker\x1b[0m\x1b[37m"
 #define GATEWAY     "Gateway"
 #define CLIENT      "Client"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 
-#define SEND_COMPLETE  "\x1b[0m\x1b[32m[Tx completed]\x1b[0m\x1b[39m\n"
+#define SEND_COMPLETE  "\x1b[0m\x1b[32m[Tx completed]\x1b[0m\x1b[37m\n"
 
 #define FORMAT      "%s   %-14s%-8s%-44s%s"
 #define FORMAT1     "%s   %-14s%-8s%-26s%s\n"
 #define FORMAT2     "\n%s   %-14s%-8s%-26s%s\n"
 
-#define RED_FORMAT1      "%s   \x1b[0m\x1b[31m%-14s%-8s%-44s\x1b[0m\x1b[39m%s\n"
-#define RED_FORMAT2    "\n%s   \x1b[0m\x1b[31m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
+#define RED_FORMAT1      "%s   \x1b[0m\x1b[31m%-14s%-8s%-44s\x1b[0m\x1b[37m%s\n"
+#define RED_FORMAT2    "\n%s   \x1b[0m\x1b[31m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
 
-#define GREEN_FORMAT     "%s   \x1b[0m\x1b[32m%-14s%-8s%-44s\x1b[0m\x1b[39m%s"
-#define GREEN_FORMAT1    "%s   \x1b[0m\x1b[32m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
-#define GREEN_FORMAT2  "\n%s   \x1b[0m\x1b[32m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
+#define GREEN_FORMAT     "%s   \x1b[0m\x1b[32m%-14s%-8s%-44s\x1b[0m\x1b[37m%s"
+#define GREEN_FORMAT1    "%s   \x1b[0m\x1b[32m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
+#define GREEN_FORMAT2  "\n%s   \x1b[0m\x1b[32m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
 
-#define YELLOW_FORMAT1   "%s   \x1b[0m\x1b[33m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
-#define YELLOW_FORMAT2 "\n%s   \x1b[0m\x1b[33m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
+#define YELLOW_FORMAT1   "%s   \x1b[0m\x1b[33m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
+#define YELLOW_FORMAT2 "\n%s   \x1b[0m\x1b[33m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
 
-#define BLUE_FORMAT      "%s   \x1b[0m\x1b[34m%-14s%-8s%-44s\x1b[0m\x1b[39m%s"
-#define BLUE_FORMAT1     "%s   \x1b[0m\x1b[34m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
-#define BLUE_FORMAT2   "\n%s   \x1b[0m\x1b[34m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
+#define BLUE_FORMAT      "%s   \x1b[0m\x1b[34m%-14s%-8s%-44s\x1b[0m\x1b[37m%s"
+#define BLUE_FORMAT1     "%s   \x1b[0m\x1b[34m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
+#define BLUE_FORMAT2   "\n%s   \x1b[0m\x1b[34m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
 
-#define CYAN_FORMAT1     "%s   \x1b[0m\x1b[36m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
-#define SYAN_FORMAT2   "\n%s   \x1b[0m\x1b[36m%-14s%-8s%-26s\x1b[0m\x1b[39m%s\n"
+#define CYAN_FORMAT1     "%s   \x1b[0m\x1b[36m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
+#define SYAN_FORMAT2   "\n%s   \x1b[0m\x1b[36m%-14s%-8s%-26s\x1b[0m\x1b[37m%s\n"
 
 /*===========================================
  *   Gateway Control Constants
