@@ -36,9 +36,10 @@
 #ifndef GATEWAYDEFINES_H_
 #define GATEWAYDEFINES_H_
 
-#define GATEWAY_VERSION ("(Ver 1.0.3)")
+#define GATEWAY_VERSION "(Ver 1.0.3)"
 
 #define BROKER      "Broker"
+#define GREEN_BROKER "\x1b[1m\x1b[32mBroker"
 #define GATEWAY     "Gateway"
 #define CLIENT      "Client"
 #define LEFTARROW   "<---"
