@@ -66,6 +66,7 @@ void BrokerSendTask::run(){
 	Event* ev = 0;
 	MQTTMessage* srcMsg = 0;
 	ClientNode* clnode = 0;
+	const char* sendStatus = 0;
 	char param[TOMYFRAME_PARAM_MAX];
 
 		if(_res->getParam("BrokerName",param) == 0){
@@ -91,52 +92,88 @@ void BrokerSendTask::run(){
 			if(srcMsg->getType() == MQTT_TYPE_PUBLISH){
 				MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(BLUE_FORMAT, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(BLUE_FORMAT1, currentDateTime(), "PUBLISH", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
 				MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBACK", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
 				MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(GREEN_FORMAT1, currentDateTime(), "PUBREL", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
 				MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(msg));
+					//LOGWRITE(FORMAT1, currentDateTime(), "PINGREQ", RIGHTARROW, BROKER, msgPrint(msg));
 				}
 			}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
 				MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(FORMAT1, currentDateTime(), "SUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
 				MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(FORMAT1, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 				MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(FORMAT1, currentDateTime(), "CONNECT", RIGHTARROW, BROKER, msgPrint(msg));
-					clnode->connectSended();
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 			}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 				MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
 				length = msg->serialize(_buffer);
+				LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(msg));
+
 				if(send(clnode, length) == 0){
-					LOGWRITE(FORMAT1, currentDateTime(), "DISCONNECT", RIGHTARROW, BROKER, msgPrint(msg));
+					sendStatus = SEND_COMPLETE;
+				}else{
+					sendStatus = SEND_ERROR;
 				}
+				LOGWRITE("   %s\n", sendStatus);
 				clnode->getStack()->disconnect();
 			}
 		}

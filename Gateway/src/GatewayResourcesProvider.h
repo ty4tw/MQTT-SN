@@ -42,7 +42,6 @@
 #include "lib/TLSStack.h"
 
 #define FILE_NAME_CLIENT_LIST "/usr/local/etc/tomygateway/config/clientList.conf"
-#define GATEWAY_VERSION ("(Ver 1.0.2)")
 
 /*=====================================
         Class MessageQue

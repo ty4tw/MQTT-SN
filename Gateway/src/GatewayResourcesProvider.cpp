@@ -277,18 +277,18 @@ void ClientNode::connectSended(){
 		if(_connAck){
 			delete _connAck;
 		}
+		/*
 		_mqttConnect = 0;
 		_waitedPubAck = 0;
 		_waitedSubAck = 0;
 		_connAck = 0;
-
+		 */
 	}
 }
 
 void ClientNode::connectQued(){
 	if(_status == Cstat_Disconnected || _status == Cstat_Lost){
 		_status = Cstat_TryConnecting;
-		//_brokerSendMessageQue.clear();
 	}
 }
 
