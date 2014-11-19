@@ -704,7 +704,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
 			clnode->connackSended(connack->getReturnCode());
-			LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
+			LOGWRITE(FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 			_res->getClientSendQue()->post(ev1);
 		}else{
 			connack = clnode->checkGetConnAck();
@@ -722,7 +722,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 				Event* ev1 = new Event();
 				ev1->setClientSendEvent(clnode);
 				clnode->connackSended(connack->getReturnCode());
-				LOGWRITE(RED_FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
+				LOGWRITE(FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 				_res->getClientSendQue()->post(ev1);
 			}
 		}

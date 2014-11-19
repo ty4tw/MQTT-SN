@@ -171,7 +171,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 	if( clnode->getStack()->isValid()){
 		rc = clnode->getStack()->send(_buffer, length);
 		if(rc == -1){
-			LOGWRITE("\nSocket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
+			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[1m\x1b[39m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
 			return -1;
@@ -182,7 +182,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 		if(clnode->getStack()->connect(_host, _service)){
 			rc = clnode->getStack()->send(_buffer, length);
 			if(rc == -1){
-				LOGWRITE("\nSocket is valid. but BrokerSendTask can't send to the Broker. errno=%d\n", errno);
+				LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[1m\x1b[39m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
 				clnode->getStack()->disconnect();
 				clnode->disconnected();
 				return -1;
@@ -190,7 +190,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 				_light->greenLight(true);
 			}
 		}else{
-			LOGWRITE("\n%s error: BrokerSendTask can't connect to the Broker.\n", currentDateTime());
+			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[1m\x1b[39m Can't connect to the Broker.\n", currentDateTime());
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
 			return -1;
