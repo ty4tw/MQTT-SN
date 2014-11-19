@@ -187,7 +187,7 @@ bool TCPStack::connect ( const char* host, const char* service ){
 	}
 
 	if( ::connect (sockfd, _addrinfo->ai_addr,  _addrinfo->ai_addrlen ) <0){
-		perror("TCPStack connect");
+		//perror("TCPStack connect");
 		::close(sockfd);
 	    return false;
 	}

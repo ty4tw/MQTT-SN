@@ -408,23 +408,23 @@ Mutex::Mutex(const char* fileName){
 	key_t key = ftok(fileName, 1);
 
 	if((_shmid = shmget(key, sizeof(pthread_mutex_t), IPC_CREAT | 0666)) < 0){
-		perror("Mutex");
+		//perror("Mutex");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 	}
 	_pmutex = (pthread_mutex_t*)shmat(_shmid, NULL, 0);
 	if(_pmutex  < 0 ){
-		perror("Mutex");
+		//perror("Mutex");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "can't attach shared memory for Mutex.");
 	}
 
 	pthread_mutexattr_init(&attr);
 
 	if(pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED) != 0) {
-		perror("Mutex pthread_mutexattr_setpshared");
+		//perror("Mutex pthread_mutexattr_setpshared");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Mutex.");
 	}
 	if(pthread_mutex_init(_pmutex, &attr) != 0) {
-		perror("Mutex pthread_mutexattr_setpshared");
+		//perror("Mutex pthread_mutexattr_setpshared");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Mutex.");
 	}
 }
@@ -453,7 +453,7 @@ void Mutex::lock(void){
 				throw;
 			}
 		}catch(char* errmsg){
-			perror("Mutex");
+			//perror("Mutex");
 			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "The same thread can't aquire a mutex twice.");
 		}
 	}
@@ -469,7 +469,7 @@ void Mutex::unlock(void){
 				throw;
 			}
 		}catch(char* errmsg){
-			perror("Mutex");
+			//perror("Mutex");
 			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't release a mutex.");
 		}
 	}
@@ -492,7 +492,7 @@ Semaphore::Semaphore(unsigned int val){
 Semaphore::Semaphore(const char* name,unsigned int val){
 	_psem = sem_open(name, O_CREAT, 0666, val);
 	if(_psem == SEM_FAILED ){
-		perror("Semaphore");
+		//perror("Semaphore");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a Semaphore.");
 	}
 	_name = (char*)mqcalloc(strlen(name + 1));
@@ -561,7 +561,7 @@ RingBuffer::RingBuffer(){
 			*_length = RINGBUFFER_SIZE - sizeof(uint16_t*) * 3 - 16;
 			*_start = *_end = 0;
 		}else{
-			perror("RingBuffer");
+			//perror("RingBuffer");
 			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "can't attach shared memory.");
 		}
 	}else if((_shmid = shmget(key, RINGBUFFER_SIZE, IPC_CREAT | 0666)) >= 0){
@@ -572,11 +572,11 @@ RingBuffer::RingBuffer(){
 			_buffer = (char*)_end + sizeof(uint16_t*);
 			_createFlg = false;
 		}else{
-			perror("RingBuffer");
+			//perror("RingBuffer");
 			THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 		}
 	}else{
-		perror("RingBuffer");
+		//perror("RingBuffer");
 		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "Can't create a shared memory.");
 	}
 
