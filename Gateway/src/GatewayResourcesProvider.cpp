@@ -265,6 +265,7 @@ void ClientNode::updateStatus(ClientStatus stat){
 void ClientNode::connectSended(){
 	if(_status == Cstat_TryConnecting){
 		_status = Cstat_Connecting;
+		/*
 		if(_mqttConnect){
 			delete _mqttConnect;
 		}
@@ -277,7 +278,6 @@ void ClientNode::connectSended(){
 		if(_connAck){
 			delete _connAck;
 		}
-		/*
 		_mqttConnect = 0;
 		_waitedPubAck = 0;
 		_waitedSubAck = 0;
