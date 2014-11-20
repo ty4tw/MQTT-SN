@@ -87,75 +87,75 @@ void BrokerSendTask::run(){
 		clnode = ev->getClientNode();
 		srcMsg = clnode->getBrokerSendMessage();
 
-		if(srcMsg){
-			if(srcMsg->getType() == MQTT_TYPE_PUBLISH){
-				MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(BLUE_FORMAT, currentDateTime(), "PUBLISH", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+		if(srcMsg->getType() == MQTT_TYPE_PUBLISH){
+			MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(BLUE_FORMAT, currentDateTime(), "PUBLISH", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
-				MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBACK", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
-				MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBREL", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-
-			}else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
-				MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(FORMAT, currentDateTime(), "PINGREQ", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
-				MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(FORMAT, currentDateTime(), "SUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
-				MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(FORMAT, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
-				MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(FORMAT, currentDateTime(), "CONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-			}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
-				MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
-				length = msg->serialize(_buffer);
-				LOGWRITE(FORMAT, currentDateTime(), "DISCONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-				if(send(clnode, length) == 0){
-					LOGWRITE(SEND_COMPLETE);
-				}
-				clnode->getStack()->disconnect();
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
 			}
+		}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
+			MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBACK", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
+			MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBREL", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+
+		}else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
+			MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT, currentDateTime(), "PINGREQ", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
+			MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT, currentDateTime(), "SUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
+			MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
+			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT, currentDateTime(), "CONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				clnode->connectSended();
+				LOGWRITE(SEND_COMPLETE);
+			}
+		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
+			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
+			length = msg->serialize(_buffer);
+			LOGWRITE(FORMAT, currentDateTime(), "DISCONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+
+			if(send(clnode, length) == 0){
+				LOGWRITE(SEND_COMPLETE);
+			}
+			clnode->getStack()->disconnect();
 		}
+
 		delete ev;
 	}
 }
