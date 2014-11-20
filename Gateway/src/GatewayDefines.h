@@ -45,7 +45,7 @@
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
 
-#define SEND_COMPLETE  "\x1b[0m\x1b[32m[Tx completed]\x1b[0m\x1b[37m\n"
+#define SEND_COMPLETE  " \x1b[0m\x1b[32m[Tx completed]\x1b[0m\x1b[37m\n"
 
 #define FORMAT      "%s   %-14s%-8s%-44s%s"
 #define FORMAT1     "%s   %-14s%-8s%-26s%s\n"

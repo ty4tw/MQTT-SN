@@ -2,7 +2,7 @@ PROGNAME := TomyGateway
 SRCDIR := src
 SUBDIR := src/lib
 
-SRCS := $(SRCDIR)/A_ProgramStructure.cpp \
+SRCS := $(SRCDIR)/TomyGateway.cpp \
 $(SRCDIR)/BrokerRecvTask.cpp \
 $(SRCDIR)/BrokerSendTask.cpp \
 $(SRCDIR)/ClientRecvTask.cpp \

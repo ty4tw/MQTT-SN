@@ -44,6 +44,7 @@
 #include <errno.h>
 
 using namespace std;
+extern char* currentDateTime();
 
 /*========================================
        Class TCPStack
@@ -106,7 +107,7 @@ bool TCPStack::bind ( const char* service ){
 	}
 	int err = getaddrinfo(0, service, &hints, &_addrinfo);
     if (err) {
-    	LOGWRITE("getaddrinfo(): %s\n", gai_strerror(err));
+    	LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37mgetaddrinfo(): %s\n", currentDateTime(),gai_strerror(err));
         return false;
     }
 
@@ -171,7 +172,7 @@ bool TCPStack::connect ( const char* host, const char* service ){
 
 	int err = getaddrinfo(host, service, &hints, &_addrinfo);
     if (err) {
-    	LOGWRITE("getaddrinfo(): %s\n", gai_strerror(err));
+    	LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37mgetaddrinfo(): %s\n", currentDateTime(),gai_strerror(err));
         return false;
     }
 
