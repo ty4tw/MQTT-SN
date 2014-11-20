@@ -141,8 +141,8 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "CONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
+			clnode->connectSended();
 			if(send(clnode, length) == 0){
-				clnode->connectSended();
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
