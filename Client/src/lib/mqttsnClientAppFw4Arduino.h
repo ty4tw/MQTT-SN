@@ -77,7 +77,7 @@ enum MQ_INT_STATUS{ WAIT, INT0_LL, INT0_WAIT_HL, INT_WDT};
 
 #define INDICATOR_ON()   theApplication->indicatorOn()
 #define INDICATOR_OFF()  theApplication->indicatorOff()
-#define BLINK_INDICATOR(...) theApplication->blincIndicator(__VA_ARGS__)
+#define BLINK_INDICATOR(...) theApplication->blinkIndicator(__VA_ARGS__)
 #define GETUTC()         theApplication->getUnixTime()
 //#define GET_DATETIME(...) theApplication->getDateTime(__VA_ARGS__)
 

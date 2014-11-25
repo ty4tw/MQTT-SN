@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified: 2014/10/15
+ *    Modified: 2014/11/25
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 1.0.1
+ *     Version: 1.1.1
  */
 
 #ifdef ARDUINO
@@ -41,7 +41,7 @@
 	#include <MQTTSN_Application.h>
 	#include <mqUtil.h>
 	#include <mqttsnClient.h>
-	#if defined(MQTTSN_DEBUG) || defined(NW_DEBUG)
+	#if defined(MQTTSN_DEBUG) || defined(NW_DEBUG) || defined(TY_DEBUG)
 		#include <SoftwareSerial.h>
 		extern SoftwareSerial debug;
 	#endif
@@ -307,15 +307,16 @@ int MqttsnClient::exec(){
         rc = sendRecvMsg();
 
         if (rc == MQTTSN_ERR_RETRY_OVER){
-			if( getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC    ||
+			if (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC    ||
 			    getMsgRequestType() == MQTTSN_TYPE_WILLMSG      ||
-				getMsgRequestType() == MQTTSN_TYPE_PINGREQ      ||
+			  	getMsgRequestType() == MQTTSN_TYPE_PINGREQ      ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBLISH      ||
 				getMsgRequestType() == MQTTSN_TYPE_REGISTER     ||
 				getMsgRequestType() == MQTTSN_TYPE_SUBSCRIBE    ||
 				getMsgRequestType() == MQTTSN_TYPE_CONNECT      ||
 				getMsgRequestType() == MQTTSN_TYPE_UNSUBSCRIBE  ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBREC       ||
+				getMsgRequestType() == MQTTSN_TYPE_SEARCHGW     ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBREL) {
 				_clientStatus.init();
 				//clearMsgRequest();
@@ -328,7 +329,7 @@ int MqttsnClient::exec(){
 		}
 		break;
 	}
-
+    clearMsgRequest();
     _sendFlg = false;
     return rc;
 }
@@ -420,10 +421,10 @@ int MqttsnClient::broadcast(uint16_t packetReadTimeout){
         while(!_respTimer.isTimeUp()){
         	if(_network->readPacket() != PACKET_ERROR_NODATA){
 				if (getMsgRequestStatus() == MQTTSN_MSG_COMPLETE){
-					clearMsgRequest();
+					//clearMsgRequest();
 					return MQTTSN_ERR_NO_ERROR;
 				}else if(getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
-					clearMsgRequest();
+					//clearMsgRequest();
 					return MQTTSN_ERR_REBOOT_REQUIRED;
 				}
         	}
@@ -431,7 +432,7 @@ int MqttsnClient::broadcast(uint16_t packetReadTimeout){
         setMsgRequestStatus(MQTTSN_MSG_REQUEST);
         retry++;
     }
-    clearMsgRequest();
+    //clearMsgRequest();
     return MQTTSN_ERR_RETRY_OVER;
 }
 
@@ -479,14 +480,14 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
 				getMsgRequestType() == MQTTSN_TYPE_REGACK     ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBCOMP    ||
 				getMsgRequestStatus() == MQTTSN_MSG_COMPLETE ){
-            	clearMsgRequest();
+            	//clearMsgRequest();
                 return MQTTSN_ERR_NO_ERROR;
             }else if(getMsgRequestType() == MQTTSN_TYPE_DISCONNECT ){
             	_clientStatus.recvDISCONNECT();
-            	clearMsgRequest();
+            	//clearMsgRequest();
 				return MQTTSN_ERR_NO_ERROR;
         	}else if (getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
-        		clearMsgRequest();
+        		//clearMsgRequest();
 				return MQTTSN_ERR_REJECTED;
             }
             /*----- Read response  ----*/
@@ -495,7 +496,7 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
 				rc = _network->readPacket();
 			}
             if(rc == MQTTSN_ERR_INVALID_TOPICID){
-            	clearMsgRequest();
+            	//clearMsgRequest();
             	return rc;
             }else if(rc == PACKET_MODEM_STATUS ){
 				break;
@@ -922,13 +923,13 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
                 setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
                 _clientStatus.recvCONNACK();
 
-            }else if (mqMsg.getReturnCode() == MQTTSN_RC_REJECTED_CONGESTION){
+            }/*else if (mqMsg.getReturnCode() == MQTTSN_RC_REJECTED_CONGESTION){
             	setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
-           		_clientStatus.recvDISCONNECT();
            		*returnCode = MQTTSN_ERR_REJECTED;
-            }else{
+           		_clientStatus.recvDISCONNECT();
+            }*/else{
                setMsgRequestStatus(MQTTSN_MSG_REJECTED);
-               *returnCode = MQTTSN_ERR_REJECTED;          // Return Code
+               *returnCode = MQTTSN_ERR_REJECTED;
                _clientStatus.recvDISCONNECT();
             }
         }
@@ -1003,7 +1004,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     }else if (msgType == MQTTSN_TYPE_WILLTOPICREQ){
         D_MQTTW("WILLTOPICREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_CONNECT){
-            clearMsgRequest();
+            //clearMsgRequest();
         	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillTopic mqMsg = MqttsnWillTopic();
             mqMsg.setFlags(0);                               // ToDo:  add  WillQoS, WillRetain to appConfig
@@ -1015,7 +1016,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     }else if (msgType == MQTTSN_TYPE_WILLMSGREQ){
         D_MQTTW("WILLMSGREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC){
-            clearMsgRequest();
+            //clearMsgRequest();
         	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillMsg mqMsg = MqttsnWillMsg();
             mqMsg.setWillMsg(_willMessage);
@@ -1047,7 +1048,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		D_MQTTW("\nPUBREL recv\r\n");
 
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
-			clearMsgRequest();  // delete PUBREC
+			//clearMsgRequest();  // delete PUBREC
 			MqttsnPubComp mqrMsg = MqttsnPubComp();
 			mqrMsg.setMsgId(mqMsg.getMsgId());
 			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
@@ -1063,7 +1064,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		D_MQTTW("\nPUBCOMP recv\r\n");
 
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
-			clearMsgRequest();    // delete request of PUBREL
+			//clearMsgRequest();    // delete request of PUBREL
 			setMsgRequestStatus(MQTTSN_MSG_COMPLETE);  // PUBLISH complete
 		}
     }else{

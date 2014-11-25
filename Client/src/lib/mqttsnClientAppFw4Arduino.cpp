@@ -28,9 +28,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Created on: 2014/06/01
- *    Modified: 2014/09/05
+ *    Modified: 2014/11/25
  *      Author: Tomoaki YAMAGUCHI
- *     Version: 1.0.0
+ *     Version: 1.1.1
  */
 
 #ifdef ARDUINO
@@ -487,7 +487,8 @@ int WdTimer::registerCallback(uint32_t sec, int (*callback)(void)){
         }
         free(savTbl);
 
-        _timerTbls[_timerCnt].prevTime = getUnixTime();
+        //_timerTbls[_timerCnt].prevTime = getUnixTime();
+        _timerTbls[_timerCnt].prevTime = (uint32_t)0;
         _timerTbls[_timerCnt].interval = sec;
         _timerTbls[_timerCnt].callback = callback;
         _timerCnt++;
