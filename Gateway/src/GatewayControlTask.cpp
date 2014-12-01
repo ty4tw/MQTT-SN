@@ -703,7 +703,8 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 			clnode->setClientSendMessage(connack);
 			Event* ev1 = new Event();
 			ev1->setClientSendEvent(clnode);
-			clnode->connackSended(connack->getReturnCode());
+			//clnode->connackSended(connack->getReturnCode());
+			clnode->disconnected();
 			LOGWRITE(FORMAT1, currentDateTime(), "*CONNACK", RIGHTARROW, clnode->getNodeId()->c_str(), msgPrint(connack));
 			_res->getClientSendQue()->post(ev1);
 		}else{
