@@ -55,8 +55,4 @@ License
 -------------------
 This source code is available under the BSD license 
   
-###Contact
 
-
-* Author:    Tomoaki YAMAGUCHI
-* Email:     tomoaki@tomy-tech.com
