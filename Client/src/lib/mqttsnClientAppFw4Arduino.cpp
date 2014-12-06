@@ -39,7 +39,7 @@
 #include <avr/power.h>
 #include <avr/sleep.h>
 
-#if defined(MQTTSN_DEBUG) || defined(ZBEE_DEBUG)
+#if defined(MQTTSN_DEBUG) || defined(ZBEE_DEBUG) || defined(DEBUG)
 	#include <SoftwareSerial.h>
 	extern SoftwareSerial debug;
 #endif
@@ -78,6 +78,7 @@ void loop(){
 	if(theAppConfig.mqttsnCfg.endDevice){
 		theApplication->setZBPinHibernate();
 	}
+
 	theApplication->initialize(theAppConfig);
 
 	if(theAppConfig.mqttsnCfg.endDevice){
@@ -87,7 +88,7 @@ void loop(){
 	}
 
 	while(true){
-		theApplication->exec();
+		theApplication->run();
 	}
 }
 
@@ -136,6 +137,9 @@ void IntHandleDummy(){
 ---------------------------------*/
 //void (*resetArduino)(void) = 0;
 void resetArduino(){
+#ifdef DEBUG
+		debug.println("Reset");
+#endif
 	asm volatile("jmp 0000");
 }
 
@@ -171,18 +175,18 @@ void MqttsnClientApplication::addTask(){
 void MqttsnClientApplication::setSubscribe(){
 	_mqttsn.setSubscribing(true);  // re-entrant control
 	_mqttsn.subscribe();
-    _mqttsn.subscribe(MQTTSN_TOPICID_PREDEFINED_TIME, setUTC,1);
+    _mqttsn.subscribe(MQTTSN_TOPICID_PREDEFINED_TIME, setUTC,QOS0);
     _mqttsn.setSubscribing(false);
 }
 
 void MqttsnClientApplication::initialize(APP_CONFIG config){
-	blinkIndicator(100);
+	//blinkIndicator(100);
     _mqttsn.initialize(config);
     XTimer::initialize();
     setSubscribe();
 }
 
-int MqttsnClientApplication::exec(){
+int MqttsnClientApplication::run(){
 	wakeupXB();
 	_mqttsn.readPacket(); //ModemeStatus or Stored packet
 	_mqttsn.readPacket();
@@ -231,6 +235,9 @@ void MqttsnClientApplication::stopWdt(){
 
 void MqttsnClientApplication::sleepApp(){
 	if(_deviceType == ZB_PIN_HIBERNATE && _sleepFlg){
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println("sleep");
+#endif
 		set_sleep_mode(SLEEP_MODE_PWR_SAVE);
 		MQwatchdogEnable();
 		sleep_enable();
@@ -462,12 +469,19 @@ bool WdTimer::wakeUp(void){
     int rc;
 	for(uint8_t i = 0; i < _timerCnt; i++) {
 		if ((_timerTbls[i].prevTime + _timerTbls[i].interval < getUnixTime()) || _initFlg){
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println("Task start");
+#endif
 			rc = (_timerTbls[i].callback)();
 			if(rc == MQTTSN_ERR_REBOOT_REQUIRED || rc == MQTTSN_ERR_INVALID_TOPICID){
 				resetArduino();
 			}
 			_timerTbls[i].prevTime = getUnixTime();
 			rcflg = true;
+
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println("Task end");
+#endif
 		}
 	}
 	_initFlg = false;

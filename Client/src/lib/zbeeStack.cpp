@@ -47,9 +47,9 @@
   #include <zbeeStack.h>
   #include <mqUtil.h>
 
-  #if defined( NW_DEBUG) || defined(MQTTSN_DEBUG)
-        #include <SoftwareSerial.h>
-        extern SoftwareSerial debug;
+  #if defined(MQTTSN_DEBUG) || defined(NW_DEBUG) || defined(DEBUG)
+	#include <SoftwareSerial.h>
+	extern SoftwareSerial debug;
   #endif
 
 #endif  /* ARDUINO */
@@ -594,11 +594,7 @@ uint16_t Network::getRxRemoteAddress16(){
     return _rxResp.getRemoteAddress16();
 }
 
-NWResponse* Network::getResponse(){
-    return &_rxResp;
-}
-
-void Network::getResponse(NWResponse& response){
+void Network::setResponse(NWResponse& response){
 	response.setApiId(_response.getApiId());
 	response.setAvailable(_response.isAvailable());
 	response.setChecksum(_response.getChecksum());
@@ -669,7 +665,7 @@ bool Network::readApiFrame(uint16_t timeoutMillsec){
             D_NWSTACKW("\r\n<=== CheckSum OK\r\n\n");
             if(_response.getApiId() == ZB_API_RESPONSE){
             	//_rxResp.setFrameDataPtr(_rxFrameDataBuf);
-            	getResponse(_rxResp);
+            	setResponse(_rxResp);
 				if(_gwAddress16 &&
 					(_rxResp.getOption() & 0x02 ) != 0x02 &&
 					(_gwAddress64.getMsb() != _rxResp.getRemoteAddress64().getMsb()) &&
@@ -820,7 +816,6 @@ void Network::resetResponse(){
   _response.reset();
   _addr16 = 0;
   _addr32 = 0;
-
 }
 
 void Network::flush(){

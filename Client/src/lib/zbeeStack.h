@@ -330,8 +330,7 @@ private:
     NWAddress64& getRxRemoteAddress64();
 	uint16_t       getRxRemoteAddress16();
 	const char*   getNodeId();
-	void          getResponse(NWResponse& response);
-	NWResponse*    getResponse();
+	void          setResponse(NWResponse& response);
 
 	void setSerialPort(SerialPort *serialPort);
 

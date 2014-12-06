@@ -142,7 +142,7 @@ public:
 
 	void startWdt();
 	void stopWdt();
-	int  exec();
+	int  run();
 	void setUnixTime(MqttsnPublish* msg);
 	uint32_t getUnixTime();
 	void getDateTime(char* buf);

@@ -41,7 +41,7 @@
 	#include <MQTTSN_Application.h>
 	#include <mqUtil.h>
 	#include <mqttsnClient.h>
-	#if defined(MQTTSN_DEBUG) || defined(NW_DEBUG) || defined(TY_DEBUG)
+	#if defined(MQTTSN_DEBUG) || defined(NW_DEBUG) || defined(DEBUG)
 		#include <SoftwareSerial.h>
 		extern SoftwareSerial debug;
 	#endif
@@ -296,13 +296,13 @@ int MqttsnClient::exec(){
 		D_MQTTW("Gateway is Dead.\r\n");
 		_clientStatus.init();
 	}
-
+/*
     if(_sendFlg){
     	return MQTTSN_ERR_NO_ERROR;
     }else{
-    	_sendFlg = true;
+    	//_sendFlg = true;
     }
-
+*/
     while(true){
         rc = sendRecvMsg();
 
@@ -319,18 +319,16 @@ int MqttsnClient::exec(){
 				getMsgRequestType() == MQTTSN_TYPE_SEARCHGW     ||
 				getMsgRequestType() == MQTTSN_TYPE_PUBREL) {
 				_clientStatus.init();
-				//clearMsgRequest();
 			}
         }else if(rc == MQTTSN_ERR_REBOOT_REQUIRED){
 			_clientStatus.init();
-			//clearMsgRequest();
 		}else if(rc != MQTTSN_ERR_NO_ERROR && rc != MQTTSN_ERR_INVALID_TOPICID){
 			continue;
 		}
 		break;
 	}
     clearMsgRequest();
-    _sendFlg = false;
+//    _sendFlg = false;
     return rc;
 }
 
@@ -409,11 +407,15 @@ int MqttsnClient::sendRecvMsg(){
 int MqttsnClient::broadcast(uint16_t packetReadTimeout){
     int retry = 0;
     while(retry < _nRetry){
-        _network->send(_sendQ->getMessage(0)->getMsgBuff(), _sendQ->getMessage(0)->getLength(),BcastReq);
-
         D_MQTTW("Bcast ");
 		D_MQTTLN(_sendQ->getMessage(0)->getMsgTypeName());
 		D_MQTTF("%s\r\n", _sendQ->getMessage(0)->getMsgTypeName());
+
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("Bcast ");
+		debug.println(_sendQ->getMessage(0)->getMsgTypeName());
+#endif
+        _network->send(_sendQ->getMessage(0)->getMsgBuff(), _sendQ->getMessage(0)->getLength(),BcastReq);
 
         _respTimer.start(packetReadTimeout * 1000);
         setMsgRequestStatus(MQTTSN_MSG_WAIT_ACK);
@@ -421,7 +423,7 @@ int MqttsnClient::broadcast(uint16_t packetReadTimeout){
         while(!_respTimer.isTimeUp()){
         	if(_network->readPacket() != PACKET_ERROR_NODATA){
 				if (getMsgRequestStatus() == MQTTSN_MSG_COMPLETE){
-					//clearMsgRequest();
+					clearMsgRequest();
 					return MQTTSN_ERR_NO_ERROR;
 				}else if(getMsgRequestStatus() == MQTTSN_MSG_REJECTED){
 					//clearMsgRequest();
@@ -465,6 +467,10 @@ int MqttsnClient::unicast(uint16_t packetReadTimeout){
         D_MQTTW("Ucast ");
         D_MQTTLN(_sendQ->getMessage(0)->getMsgTypeName());
         D_MQTTF("%s\r\n", _sendQ->getMessage(0)->getMsgTypeName());
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("Ucast ");
+		debug.println(_sendQ->getMessage(0)->getMsgTypeName());
+#endif
 
         _network->send(_sendQ->getMessage(0)->getMsgBuff(), _sendQ->getMessage(0)->getLength(), UcastReq);
         _clientStatus.setLastSendTime();
@@ -777,6 +783,10 @@ int  MqttsnClient::pingReq(MQString* clientId){
  =====================================================*/
 void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 	uint8_t msgType = recvMsg->getType();
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("Receive Msg=0x");
+		debug.println(msgType,HEX);
+#endif
     if ( (_clientStatus.isSearching() && msgType != MQTTSN_TYPE_GWINFO) ||
     	 (_clientStatus.isSubscribing() && msgType == MQTTSN_TYPE_PUBLISH ) ||
 		 (getMsgRequestType() == MQTTSN_TYPE_PUBLISH &&
@@ -784,6 +794,10 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		  msgType == MQTTSN_TYPE_PUBLISH ) )
     {
     	D_MQTTW("Ignore Received Message\r\n");
+
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println("Ignore Received Message");
+#endif
 /*---------  GWINFO  ----------*/
 	}else if (msgType == MQTTSN_TYPE_GWINFO && recvMsg->getPayloadLength() == 3){
 		D_MQTTW("GWINFO recv\r\n");
@@ -923,13 +937,10 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
                 setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
                 _clientStatus.recvCONNACK();
 
-            }/*else if (mqMsg.getReturnCode() == MQTTSN_RC_REJECTED_CONGESTION){
-            	setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
-           		*returnCode = MQTTSN_ERR_REJECTED;
-           		_clientStatus.recvDISCONNECT();
-            }*/else{
+            }else{
                setMsgRequestStatus(MQTTSN_MSG_REJECTED);
                *returnCode = MQTTSN_ERR_REJECTED;
+				clearMsgRequest();
                _clientStatus.recvDISCONNECT();
             }
         }
@@ -1004,7 +1015,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     }else if (msgType == MQTTSN_TYPE_WILLTOPICREQ){
         D_MQTTW("WILLTOPICREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_CONNECT){
-            //clearMsgRequest();
+            clearMsgRequest();
         	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillTopic mqMsg = MqttsnWillTopic();
             mqMsg.setFlags(0);                               // ToDo:  add  WillQoS, WillRetain to appConfig
@@ -1016,7 +1027,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
     }else if (msgType == MQTTSN_TYPE_WILLMSGREQ){
         D_MQTTW("WILLMSGREQ recv\r\n");
         if (getMsgRequestType() == MQTTSN_TYPE_WILLTOPIC){
-            //clearMsgRequest();
+            clearMsgRequest();
         	//setMsgRequestStatus(MQTTSN_MSG_COMPLETE);
             MqttsnWillMsg mqMsg = MqttsnWillMsg();
             mqMsg.setWillMsg(_willMessage);
@@ -1048,7 +1059,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		D_MQTTW("\nPUBREL recv\r\n");
 
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
-			//clearMsgRequest();  // delete PUBREC
+			clearMsgRequest();  // delete PUBREC
 			MqttsnPubComp mqrMsg = MqttsnPubComp();
 			mqrMsg.setMsgId(mqMsg.getMsgId());
 			requestPrioritySendMsg((MqttsnMessage*)&mqMsg);
@@ -1064,7 +1075,7 @@ void MqttsnClient::recieveMessageHandler(NWResponse* recvMsg, int* returnCode){
 		D_MQTTW("\nPUBCOMP recv\r\n");
 
 		if (mqMsg.getMsgId() == getUint16(_sendQ->getMessage(0)->getBody())){
-			//clearMsgRequest();    // delete request of PUBREL
+			clearMsgRequest();    // delete request of PUBREL
 			setMsgRequestStatus(MQTTSN_MSG_COMPLETE);  // PUBLISH complete
 		}
     }else{
@@ -1092,9 +1103,15 @@ int SendQue::addRequest(MqttsnMessage* msg){
 		D_MQTTW("\nAdd SendQue size = ");
 		D_MQTT(_queCnt + 1, DEC);
 		D_MQTT(" Msg = 0x");
-		D_MQTTLN(msg->getType(), HEX);
+		D_MQTTLN(msg->getMsgTypeName());
 		D_MQTTF("%d  Msg = 0x%x\r\n", _queCnt + 1, msg->getType());
 
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("\nAdd SendQue size = ");
+		debug.print(_queCnt + 1, DEC);
+		debug.print(" Msg=");
+		debug.println(msg->getMsgTypeName());
+#endif
         _msg[_queCnt] =new MqttsnMessage();
         _msg[_queCnt++]->copy(msg);
         return _queCnt - 1;
@@ -1112,6 +1129,12 @@ int SendQue::addPriorityRequest(MqttsnMessage* msg){
 	D_MQTT("  Msg = 0x");
 	D_MQTTLN(msg->getType(), HEX);
 	D_MQTTF("%d  Msg = 0x%x", _queCnt, msg->getType());
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("\nAdd SendQue Top size = ");
+		debug.print(_queCnt, DEC);
+		debug.print(" Msg=");
+		debug.print(msg->getMsgTypeName());
+#endif
 
     for(int i = _queCnt-1; i > 0; i--){
         _msg[i] = _msg[i - 1];
@@ -1124,8 +1147,15 @@ int SendQue::addPriorityRequest(MqttsnMessage* msg){
      	    D_MQTT( "  Msg = 0x");
 			D_MQTT(_msg[i]->getType(), HEX);
 			D_MQTTF("  Msg = 0x%x ", _msg[i]->getType());
+#if defined(DEBUG) && defined(ARDUINO)
+			debug.print("  Msg=");
+			debug.print(_msg[i]->getMsgTypeName());
+#endif
         }
         D_MQTTW("\r\n");
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println();
+#endif
 
     return 0;
 }
@@ -1140,6 +1170,10 @@ int SendQue::deleteRequest(uint8_t index){
     	D_MQTTW("\nDelete SendQue  Size = ");
     	D_MQTT(_queCnt, DEC);
     	D_MQTTF("%d", _queCnt);
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.print("\nDelete SendQue  Size = ");
+		debug.print(_queCnt, DEC);
+#endif
 
         for(int i = index; i < _queCnt; i++){
             _msg[i] = _msg[i + 1];
@@ -1147,10 +1181,16 @@ int SendQue::deleteRequest(uint8_t index){
             D_MQTT( "  Msg = 0x");
 			D_MQTT(_msg[i]->getType(), HEX);
 			D_MQTTF("  Msg = 0x%x ", _msg[i]->getType());
-
+#if defined(DEBUG) && defined(ARDUINO)
+			debug.print("  Msg=");
+			debug.print(_msg[i]->getMsgTypeName());
+#endif
         }
 
         D_MQTTW("\r\n");
+#if defined(DEBUG) && defined(ARDUINO)
+		debug.println();
+#endif
         for(int i = _queCnt; i < _queSize; i++){
             _msg[i] = 0;
         }
@@ -1196,7 +1236,7 @@ uint8_t SendQue::getCount(){
 
 
 /*=====================================
-        Class SendQue
+        Class ClientStatus
  ======================================*/
 ClientStatus::ClientStatus(){
 	init();
