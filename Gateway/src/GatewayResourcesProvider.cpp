@@ -449,7 +449,7 @@ void ClientNode::setClientAddress16(uint16_t addr){
 }
 
 void ClientNode::setNodeId(string* id){
-	_nodeId.append(*id);
+	_nodeId.assign(*id);
 }
 
 void ClientNode::setTopics(Topics* topics){
