@@ -190,8 +190,4 @@ Client application sample which is used for debug.
    //#define NETWORK_UDP     
   
   
-###Contact
 
-
-* Author:    Tomoaki YAMAGUCHI
-* Email:     tomoaki@tomy-tech.com

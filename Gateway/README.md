@@ -146,11 +146,7 @@ How to monitor the Gateway
 
     
 
-###Contact
 
-
-* Author:    Tomoaki YAMAGUCHI
-* Email:     tomoaki@tomy-tech.com
   
   
   
