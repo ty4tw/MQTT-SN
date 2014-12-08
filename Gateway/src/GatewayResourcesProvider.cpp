@@ -269,24 +269,7 @@ void ClientNode::connectSended(){
 		if(_mqttConnect){
 			delete _mqttConnect;
 		}
-		/*
-		if(_waitedPubAck){
-			delete _waitedPubAck;
-		}
-		if(_waitedSubAck){
-			delete _waitedSubAck;
-		}
-		if(_connAck){
-			delete _connAck;
-		}
-		*/
 		_mqttConnect = 0;
-		/*
-		_waitedPubAck = 0;
-		_waitedSubAck = 0;
-		_connAck = 0;
-		*/
-
 	}
 }
 
@@ -606,6 +589,9 @@ ClientNode* ClientList::operator[](int pos){
 	return node;
 }
 
+bool ClientList::isAuthorized(){
+	return _authorize;
+}
 
 /*=====================================
         Class Event

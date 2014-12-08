@@ -60,6 +60,7 @@ GatewayControlTask::GatewayControlTask(GatewayResourcesProvider* res){
 	_loginId = "";
 	_password = "";
 	_secure = false;
+	_stableNetwork = true;
 }
 
 GatewayControlTask::~GatewayControlTask(){
@@ -100,6 +101,11 @@ void GatewayControlTask::run(){
 	if(_res->getParam("SecureConnection",param) == 0){
 		if(!strcasecmp(param, "YES")){
 			_secure = true;  // TLS
+		}
+	}
+	if(_res->getParam("NetworkIsStable",param) == 0){
+		if(!strcasecmp(param, "NO")){
+			_stableNetwork = false;
 		}
 	}
 
@@ -602,6 +608,10 @@ void GatewayControlTask::handleSnConnect(Event* ev, ClientNode* clnode, MQTTSnMe
 	MQTTSnConnect* sConnect = new MQTTSnConnect();
 	sConnect->absorb(msg);
 
+	if (!_res->getClientList()->isAuthorized()){
+		clnode->setNodeId(sConnect->getClientId());
+	}
+
 	if(clnode->isConnectSendable()){
 		mqMsg = new MQTTConnect();
 
@@ -697,7 +707,7 @@ void GatewayControlTask::handleSnWillMsg(Event* ev, ClientNode* clnode, MQTTSnMe
 	}else{
 		MQTTSnConnack* connack = 0;
 
-		if(!_secure){
+		if(!_secure && _stableNetwork){
 			connack = new MQTTSnConnack();
 			connack->setReturnCode(MQTTSN_RC_REJECTED_CONGESTION);
 			clnode->setClientSendMessage(connack);
@@ -943,7 +953,7 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 		ev1->setClientSendEvent(clnode);
 		_res->getClientSendQue()->post(ev1);
 	}
-
+/*
 	// Send saved messages while sleeping
 	if(clnode->isActive()){
 		while(clnode->getClientSleepMessage()){
@@ -953,6 +963,7 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 			_res->getClientSendQue()->post(ev1);
 		}
 	}
+*/
 }
 
 /*-------------------------------------------------------

@@ -92,7 +92,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(BLUE_FORMAT, currentDateTime(), "PUBLISH", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
@@ -100,7 +100,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBACK", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
@@ -108,7 +108,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBREL", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 
@@ -117,7 +117,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "PINGREQ", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
@@ -125,7 +125,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "SUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
@@ -133,7 +133,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
@@ -142,7 +142,7 @@ void BrokerSendTask::run(){
 			LOGWRITE(FORMAT, currentDateTime(), "CONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
 			clnode->connectSended();
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
@@ -150,7 +150,7 @@ void BrokerSendTask::run(){
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "DISCONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
 
-			if(send(clnode, length) == 0){
+			if(send(clnode, length) > 0){
 				LOGWRITE(SEND_COMPLETE);
 			}
 			clnode->getStack()->disconnect();
@@ -174,7 +174,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
-			return -1;
+			//return rc;
 		}else{
 			_light->greenLight(true);
 		}
@@ -185,7 +185,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 				LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
 				clnode->getStack()->disconnect();
 				clnode->disconnected();
-				return -1;
+				//return -1;
 			}else{
 				_light->greenLight(true);
 			}
@@ -196,7 +196,7 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 			return -1;
 		}
 	}
-	return 0;
+	return rc;
 }
 
 char*  BrokerSendTask::msgPrint(MQTTMessage* msg){

@@ -177,6 +177,7 @@ public:
 	ClientNode* createNode(bool secure, NWAddress64* addr64, uint16_t addr16, string* nodeId = 0);
 	uint16_t getClientCount();
 	ClientNode* operator[](int);
+	bool isAuthorized();
 private:
 	vector<ClientNode*>*  _clientVector;
 	Mutex _mutex;

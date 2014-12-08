@@ -59,6 +59,7 @@ private:
 	string _loginId;
 	string _password;
 	bool _secure;
+	bool _stableNetwork;
 
 	void handleClientMessage(Event*);
 	void handleBrokerMessage(Event*);
