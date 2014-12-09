@@ -91,68 +91,51 @@ void BrokerSendTask::run(){
 			MQTTPublish* msg = static_cast<MQTTPublish*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(BLUE_FORMAT, currentDateTime(), "PUBLISH", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 		}else if(srcMsg->getType() == MQTT_TYPE_PUBACK){
 			MQTTPubAck* msg = static_cast<MQTTPubAck*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBACK", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 		}else if(srcMsg->getType() == MQTT_TYPE_PUBREL){
 			MQTTPubRel* msg = static_cast<MQTTPubRel*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(GREEN_FORMAT, currentDateTime(), "PUBREL", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
+			send(clnode, length);
 
 		}else if(srcMsg->getType() == MQTT_TYPE_PINGREQ){
 			MQTTPingReq* msg = static_cast<MQTTPingReq*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "PINGREQ", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 		}else if(srcMsg->getType() == MQTT_TYPE_SUBSCRIBE){
 			MQTTSubscribe* msg = static_cast<MQTTSubscribe*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "SUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 		}else if(srcMsg->getType() == MQTT_TYPE_UNSUBSCRIBE){
 			MQTTUnsubscribe* msg = static_cast<MQTTUnsubscribe*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "UNSUBSCRIBE", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 		}else if(srcMsg->getType() == MQTT_TYPE_CONNECT){
 			MQTTConnect* msg = static_cast<MQTTConnect*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "CONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
-
 			clnode->connectSended();
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
+			send(clnode, length);
+
 		}else if(srcMsg->getType() == MQTT_TYPE_DISCONNECT){
 			MQTTDisconnect* msg = static_cast<MQTTDisconnect*>(srcMsg);
 			length = msg->serialize(_buffer);
 			LOGWRITE(FORMAT, currentDateTime(), "DISCONNECT", RIGHTARROW, GREEN_BROKER, msgPrint(msg));
+			send(clnode, length);
 
-			if(send(clnode, length) > 0){
-				LOGWRITE(SEND_COMPLETE);
-			}
 			clnode->getStack()->disconnect();
 		}
 
@@ -170,24 +153,26 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 
 	if( clnode->getStack()->isValid()){
 		rc = clnode->getStack()->send(_buffer, length);
-		if(rc == -1){
-			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
+		if(rc != length){
+			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), rc == -1 ? errno : 0);
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
 			//return rc;
 		}else{
 			_light->greenLight(true);
+			LOGWRITE(SEND_COMPLETE);
 		}
 	}else{
 		if(clnode->getStack()->connect(_host, _service)){
 			rc = clnode->getStack()->send(_buffer, length);
-			if(rc == -1){
-				LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), errno);
+			if(rc != length){
+				LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), rc == -1 ? errno : 0);
 				clnode->getStack()->disconnect();
 				clnode->disconnected();
 				//return -1;
 			}else{
 				_light->greenLight(true);
+				LOGWRITE(SEND_COMPLETE);
 			}
 		}else{
 			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't connect to the Broker.\n", currentDateTime());
