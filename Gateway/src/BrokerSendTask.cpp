@@ -145,10 +145,10 @@ void BrokerSendTask::run(){
 
 
 int BrokerSendTask::send(ClientNode* clnode, int length){
-	int rc = 0;
+	int rc = -1;
 
 	if(length <= 0){
-		return -1;
+		return rc;
 	}
 
 	if( clnode->getStack()->isValid()){
@@ -157,10 +157,9 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), rc == -1 ? errno : 0);
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
-			//return rc;
 		}else{
 			_light->greenLight(true);
-			LOGWRITE(SEND_COMPLETE);
+			//LOGWRITE(SEND_COMPLETE);
 		}
 	}else{
 		if(clnode->getStack()->connect(_host, _service)){
@@ -169,16 +168,14 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 				LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't Xmit to the Broker. errno=%d\n", currentDateTime(), rc == -1 ? errno : 0);
 				clnode->getStack()->disconnect();
 				clnode->disconnected();
-				//return -1;
 			}else{
 				_light->greenLight(true);
-				LOGWRITE(SEND_COMPLETE);
+				//LOGWRITE(SEND_COMPLETE);
 			}
 		}else{
 			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't connect to the Broker.\n", currentDateTime());
 			clnode->getStack()->disconnect();
 			clnode->disconnected();
-			return -1;
 		}
 	}
 	return rc;
