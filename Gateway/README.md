@@ -111,7 +111,16 @@ Raspberry Pi SD card img file
     3) root's password is root    
     4) Login ID is "gw" and password is "gw".    xxx.xxx... is IP address DHCP assigned.    
         $ ssh xxx.xxx.xxx.xxx -l gw -p 22022  
-    5) TomyGateway is invoked automaticaly. 
+    5) Download latest version from github & compile  as follows  
+    6) $ rm -rf MQTT-SN    
+    7) $ git clone https://github.com/ty4tw/MQTT-SN.git    
+    8) $ cd MQTT-SN/Gateway/src    
+    9) $ vi GatewayDefines.h        uncomment line97    
+    10) $ make    
+    11) $ make install    
+    12) $ cd    
+    13) $ mv TomyGatetway  TomyGatewayXBee   
+    14)  reboot
               
 
     
