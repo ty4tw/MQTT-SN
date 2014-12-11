@@ -129,8 +129,9 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 
 	recvLength = clnode->getStack()->recv(packet,SOCKET_MAXBUFFER_LENGTH);
 
-	if (recvLength == -1){
+	if (recvLength <= 0){
 		LOGWRITE(" Client : %s Error: BrokerRecvTask can't Receive data from Broker\n", clnode->getNodeId()->c_str());
+		clnode->getStack()->disconnect();
 		clnode->disconnected();
 	}
 
