@@ -56,10 +56,10 @@ ClientSendTask::~ClientSendTask(){
 
 
 void ClientSendTask::run(){
+	NETWORK_CONFIG config;
 
 #ifdef NETWORK_XBEE
 	char param[TOMYFRAME_PARAM_MAX];
-	XBeeConfig config;
 	bool secure = true;
 
 	config.baudrate = B57600;
@@ -78,12 +78,24 @@ void ClientSendTask::run(){
 #endif
 
 #ifdef NETWORK_UDP
-	UdpConfig config;
+	char param[TOMYFRAME_PARAM_MAX];
+
+	if(_res->getParam("BroadcastIP", param) == 0){
+		config.ipAddress = strdup(param);
+	}
+
+	if(_res->getParam("BrokerPortNo",param) == 0){
+		config.gPortNo = atoi(param);
+	}
+
+	if(_res->getParam("GatewayPortNo",param) == 0){
+		config.uPortNo = atoi(param);
+	}
+
 	_network = _res->getNetwork();
 #endif
 
 #ifdef NETWORK_XXXXX
-	XXXXXConfig config;
 	_network = _res->getNetwork();
 #endif
 

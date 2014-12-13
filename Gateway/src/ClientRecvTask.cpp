@@ -61,11 +61,10 @@ ClientRecvTask::~ClientRecvTask(){
 
 
 void ClientRecvTask::run(){
-
+	NETWORK_CONFIG config;
 	bool secure = false;   // TCP
 
 #ifdef NETWORK_XBEE
-	XBeeConfig config;
 	char param[TOMYFRAME_PARAM_MAX];
 
 
@@ -86,7 +85,6 @@ void ClientRecvTask::run(){
 #endif
 
 #ifdef NETWORK_UDP
-	UdpConfig config;
 	char param[TOMYFRAME_PARAM_MAX];
 
 	if(_res->getParam("BroadcastIP", param) == 0){
@@ -105,10 +103,6 @@ void ClientRecvTask::run(){
 #endif
 
 #ifdef NETWORK_XXXXX
-	XXXXXConfig config;
-	config.param1 = _res->getArgv('X');
-	config.param2 = atoi(_res->getArgv('X'));
-	config.param3 = atoi(_res->getArgv('X'));
 	_network = _res->getNetwork();
 #endif
 
