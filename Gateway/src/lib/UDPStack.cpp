@@ -41,7 +41,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
+#include <netinet/ip.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -150,10 +150,6 @@ int UDPPort::initialize(UdpConfig config){
 	_gPortNo = htons(config.gPortNo);
 	_gIpAddr = inet_addr(config.ipAddress);
 
-	_config.gPortNo = config.gPortNo;
-	_config.uPortNo = config.uPortNo;
-	_config.ipAddress = config.ipAddress;
-
 	/*------ Create unicast socket --------*/
 	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, 0);
 	if (_sockfdUnicast < 0){
@@ -164,14 +160,13 @@ int UDPPort::initialize(UdpConfig config){
 
 	sockaddr_in addru;
 	addru.sin_family = AF_INET;
-	addru.sin_port = htons(_config.uPortNo);
+	addru.sin_port = htons(config.uPortNo);
 	addru.sin_addr.s_addr = INADDR_ANY;
 	if( ::bind ( _sockfdUnicast, (sockaddr*)&addru,  sizeof(addru)) <0){
 		return -1;
 	}
-
 	if(setsockopt(_sockfdUnicast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
+		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::initialize\n");
 		close();
 		return -1;
 	}
@@ -187,29 +182,31 @@ int UDPPort::initialize(UdpConfig config){
 
 	sockaddr_in addrm;
 	addrm.sin_family = AF_INET;
-	addrm.sin_port = htons(_config.gPortNo);
+	addrm.sin_port = htons(config.gPortNo);
 	addrm.sin_addr.s_addr = INADDR_ANY;
 	if( ::bind ( _sockfdMulticast, (sockaddr*)&addrm,  sizeof(addrm)) <0){
 		return -1;
 	}
 	if(setsockopt(_sockfdMulticast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
+		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::initialize\n");
 		close();
 		return -1;
 	}
 
 	struct ip_mreq mreq;
 	mreq.imr_interface.s_addr = INADDR_ANY;
-	mreq.imr_multiaddr.s_addr = inet_addr(_config.ipAddress);
+	mreq.imr_multiaddr.s_addr = inet_addr(config.ipAddress);
 
 	if( setsockopt(_sockfdMulticast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))< 0){
-		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
-		perror("error");
+		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::initialize\n");
+		perror("adding multicast group");
 		close();
 		return -1;
 	}
+
 	if( setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))< 0){
-		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
+		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::initialize\n");
+		perror("adding multicast group");
 		close();
 		return -1;
 	}

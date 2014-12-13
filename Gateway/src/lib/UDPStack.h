@@ -136,7 +136,6 @@ private:
 	uint16_t _gPortNo;
 	uint32_t _gIpAddr;
 	bool    _disconReq;
-	UdpConfig _config;
 
 };
 

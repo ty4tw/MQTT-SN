@@ -84,7 +84,7 @@ void ClientSendTask::run(){
 		config.ipAddress = strdup(param);
 	}
 
-	if(_res->getParam("BrokerPortNo",param) == 0){
+	if(_res->getParam("BroadcastPortNo",param) == 0){
 		config.gPortNo = atoi(param);
 	}
 
