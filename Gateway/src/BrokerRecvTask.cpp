@@ -49,6 +49,7 @@ extern char* currentDateTime();
 BrokerRecvTask::BrokerRecvTask(GatewayResourcesProvider* res){
 	_res = res;
 	_res->attach(this);
+	_stableNetwork = true;
 }
 
 BrokerRecvTask::~BrokerRecvTask(){
@@ -57,6 +58,12 @@ BrokerRecvTask::~BrokerRecvTask(){
 
 
 void BrokerRecvTask::run(){
+	char param[TOMYFRAME_PARAM_MAX];
+	if(_res->getParam("NetworkIsStable",param) == 0){
+		if(!strcasecmp(param, "NO")){
+			_stableNetwork = false;
+		}
+	}
 
 	struct timeval timeout;
 
@@ -129,7 +136,7 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 
 	recvLength = clnode->getStack()->recv(packet,SOCKET_MAXBUFFER_LENGTH);
 
-	if (recvLength == -1){
+	if (recvLength == -1 || (!_stableNetwork && recvLength == 0)){
 		LOGWRITE(" Client : %s Error: BrokerRecvTask can't Receive data from Broker\n", clnode->getNodeId()->c_str());
 		clnode->disconnected();
 	}

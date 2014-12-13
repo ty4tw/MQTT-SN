@@ -78,10 +78,12 @@ void ClientSendTask::run(){
 #endif
 
 #ifdef NETWORK_UDP
+	UdpConfig config;
 	_network = _res->getNetwork();
 #endif
 
 #ifdef NETWORK_XXXXX
+	XXXXXConfig config;
 	_network = _res->getNetwork();
 #endif
 

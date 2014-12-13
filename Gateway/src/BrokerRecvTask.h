@@ -54,6 +54,7 @@ private:
 	void recvAndFireEvent(ClientNode*);
 	GatewayResourcesProvider* _res;
 	char _printBuf[SOCKET_MAXBUFFER_LENGTH * 5];
+	bool _stableNetwork;
 };
 
 

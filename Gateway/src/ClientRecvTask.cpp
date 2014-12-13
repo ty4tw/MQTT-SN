@@ -62,10 +62,11 @@ ClientRecvTask::~ClientRecvTask(){
 
 void ClientRecvTask::run(){
 
+	bool secure = false;   // TCP
+
 #ifdef NETWORK_XBEE
 	XBeeConfig config;
 	char param[TOMYFRAME_PARAM_MAX];
-	bool secure = false;   // TCP
 
 
 	config.baudrate = B57600;
