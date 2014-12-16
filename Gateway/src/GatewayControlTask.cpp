@@ -953,7 +953,7 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 		ev1->setClientSendEvent(clnode);
 		_res->getClientSendQue()->post(ev1);
 	}
-/*
+
 	// Send saved messages while sleeping
 	if(clnode->isActive()){
 		while(clnode->getClientSleepMessage()){
@@ -963,7 +963,6 @@ void GatewayControlTask::handleConnack(Event* ev, ClientNode* clnode, MQTTMessag
 			_res->getClientSendQue()->post(ev1);
 		}
 	}
-*/
 }
 
 /*-------------------------------------------------------

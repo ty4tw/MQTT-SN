@@ -62,11 +62,10 @@ ClientRecvTask::~ClientRecvTask(){
 
 void ClientRecvTask::run(){
 	NETWORK_CONFIG config;
+	char param[TOMYFRAME_PARAM_MAX];
 	bool secure = false;   // TCP
 
 #ifdef NETWORK_XBEE
-	char param[TOMYFRAME_PARAM_MAX];
-
 
 	config.baudrate = B57600;
 	config.flag = O_RDONLY;
@@ -82,30 +81,25 @@ void ClientRecvTask::run(){
 
 	_res->getClientList()->authorize(FILE_NAME_CLIENT_LIST, secure);
 	_network = new Network();
+
 #endif
 
 #ifdef NETWORK_UDP
-	char param[TOMYFRAME_PARAM_MAX];
-
 	if(_res->getParam("BroadcastIP", param) == 0){
 		config.ipAddress = strdup(param);
 	}
-
 	if(_res->getParam("BroadcastPortNo",param) == 0){
 		config.gPortNo = atoi(param);
 	}
-
 	if(_res->getParam("GatewayPortNo",param) == 0){
 		config.uPortNo = atoi(param);
 	}
-
 	_network = _res->getNetwork();
 #endif
 
 #ifdef NETWORK_XXXXX
 	_network = _res->getNetwork();
 #endif
-
 
 	if(_network->initialize(config) < 0){
 		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT

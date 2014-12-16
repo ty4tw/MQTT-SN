@@ -119,7 +119,7 @@ public:
 	UDPPort();
 	virtual ~UDPPort();
 
-	int initialize(UdpConfig config);
+	int open(UdpConfig config);
 
 	int unicast(const uint8_t* buf, uint32_t length, uint32_t ipaddress, uint16_t port  );
 	int multicast( const uint8_t* buf, uint32_t length );

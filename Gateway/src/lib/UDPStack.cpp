@@ -108,7 +108,7 @@ bool Network::getResponse(NWResponse* response){
 }
 
 int Network::initialize(UdpConfig  config){
-	return UDPPort::initialize(config);
+	return UDPPort::open(config);
 }
 
 
@@ -140,7 +140,7 @@ void UDPPort::close(){
 	}
 }
 
-int UDPPort::initialize(UdpConfig config){
+int UDPPort::open(UdpConfig config){
 	char loopch = 0;
 	const int reuse = 1;
 
@@ -151,7 +151,7 @@ int UDPPort::initialize(UdpConfig config){
 	_gIpAddr = inet_addr(config.ipAddress);
 
 	/*------ Create unicast socket --------*/
-	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, 0);
+	_sockfdUnicast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (_sockfdUnicast < 0){
 		return -1;
 	}
@@ -162,17 +162,18 @@ int UDPPort::initialize(UdpConfig config){
 	addru.sin_family = AF_INET;
 	addru.sin_port = htons(config.uPortNo);
 	addru.sin_addr.s_addr = INADDR_ANY;
+
 	if( ::bind ( _sockfdUnicast, (sockaddr*)&addru,  sizeof(addru)) <0){
 		return -1;
 	}
 	if(setsockopt(_sockfdUnicast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::initialize\n");
+		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
 		close();
 		return -1;
 	}
 
 	/*------ Create Multicast socket --------*/
-	_sockfdMulticast = socket(AF_INET, SOCK_DGRAM, 0);
+	_sockfdMulticast = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (_sockfdMulticast < 0){
 		close();
 		return -1;
@@ -182,31 +183,31 @@ int UDPPort::initialize(UdpConfig config){
 
 	sockaddr_in addrm;
 	addrm.sin_family = AF_INET;
-	addrm.sin_port = htons(config.gPortNo);
+	addrm.sin_port = _gPortNo;
 	addrm.sin_addr.s_addr = INADDR_ANY;
+
 	if( ::bind ( _sockfdMulticast, (sockaddr*)&addrm,  sizeof(addrm)) <0){
 		return -1;
 	}
 	if(setsockopt(_sockfdMulticast, IPPROTO_IP, IP_MULTICAST_LOOP,(char*)&loopch, sizeof(loopch)) <0 ){
-		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::initialize\n");
+		D_NWSTACK("error IP_MULTICAST_LOOP in UDPPort::open\n");
 		close();
 		return -1;
 	}
 
-	struct ip_mreq mreq;
+	ip_mreq mreq;
 	mreq.imr_interface.s_addr = INADDR_ANY;
-	mreq.imr_multiaddr.s_addr = inet_addr(config.ipAddress);
+	mreq.imr_multiaddr.s_addr = _gIpAddr;
 
 	if( setsockopt(_sockfdMulticast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))< 0){
-		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::initialize\n");
-		perror("adding multicast group");
+		D_NWSTACK("error Multicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
+		perror("multicast");
 		close();
 		return -1;
 	}
 
 	if( setsockopt(_sockfdUnicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))< 0){
-		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::initialize\n");
-		perror("adding multicast group");
+		D_NWSTACK("error Unicast IP_ADD_MEMBERSHIP in UDPPort::open\n");
 		close();
 		return -1;
 	}

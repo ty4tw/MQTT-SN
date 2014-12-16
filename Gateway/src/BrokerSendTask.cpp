@@ -159,7 +159,6 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 			clnode->disconnected();
 		}else{
 			_light->greenLight(true);
-			//LOGWRITE(SEND_COMPLETE);
 		}
 	}else{
 		if(clnode->getStack()->connect(_host, _service)){
@@ -170,7 +169,6 @@ int BrokerSendTask::send(ClientNode* clnode, int length){
 				clnode->disconnected();
 			}else{
 				_light->greenLight(true);
-				//LOGWRITE(SEND_COMPLETE);
 			}
 		}else{
 			LOGWRITE("\n%s   \x1b[0m\x1b[31merror:\x1b[0m\x1b[37m Can't connect to the Broker.\n", currentDateTime());

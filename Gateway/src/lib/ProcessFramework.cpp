@@ -65,15 +65,12 @@ MultiTaskProcess* theMultiTask = 0;
 static volatile int theSignaled = 0;
 
 static void signalHandler(int sig){
-	assert(sig == SIGINT || sig == SIGHUP || sig == SIGTERM);
 	theSignaled = sig;
 }
 
 int main(int argc, char** argv){
 	try{
-//		signal(SIGHUP, signalHandler);
 		signal(SIGINT, signalHandler);
-//		signal(SIGTERM, signalHandler);
 
 		theProcess->initialize(argc, argv);
 		theProcess->run();

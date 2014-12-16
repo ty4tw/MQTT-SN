@@ -53,7 +53,7 @@ Usage
     #LoginID=    
     #Password=    
     SerialDevice=/dev/ttyUSB0     
-    BroadcastIP=255.1.1.1     
+    BroadcastIP=225.1.1.1     
     GatewayPortNo=2000      
     BroadcastPortNo=1883     
     GatewayID=1    
