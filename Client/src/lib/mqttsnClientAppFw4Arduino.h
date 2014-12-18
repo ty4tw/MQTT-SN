@@ -62,14 +62,17 @@
 
 #define MQ_WDT_ERR   (B01100000)  // Error Indication time
 
-//#define MQ_WDT_TIME (B01000111)   // 2 Sec
+#define MQ_WDT_TIME (B01000110)   // 1 Sec
+#define MQ_WDT_TIME_MSEC   1000
+
+//#define MQ_WDT_TIME (B01000111)   // 2 Secs
 //#define MQ_WDT_TIME_MSEC   2000
 
-//#define MQ_WDT_TIME (B01100000)   // 4 Sec
+//#define MQ_WDT_TIME (B01100000)   // 4 Secs
 //#define MQ_WDT_TIME_MSEC   4000
  
-#define MQ_WDT_TIME (B01100001)   // 8 Sec
-#define MQ_WDT_TIME_MSEC   8000
+//#define MQ_WDT_TIME (B01100001)   // 8 Secs
+//#define MQ_WDT_TIME_MSEC   8000
 
 
 enum MQ_INT_STATUS{ WAIT, INT0_LL, INT0_WAIT_HL, INT_WDT};
@@ -117,8 +120,8 @@ public:
 	void registerInt0Callback(void (*callback)());
 	void registerWdtCallback(long sec, int (*callback)(void));
 	void refleshWdtCallbackTable();
-	void initialize(APP_CONFIG config);
-	void setSubscribe();
+	int  initialize(APP_CONFIG config);
+	int  setSubscribe();
 	void setKeepAlive(uint16_t msec);
 	void setWillTopic(MQString* willTopic);
 	void setWillMessage(MQString* willMsg);
