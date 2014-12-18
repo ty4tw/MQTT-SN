@@ -346,7 +346,6 @@ int MultiTaskProcess::getParam(const char* parameter, char* value){
 Thread::Thread(){
 	_stopProcessEvent = theMultiTask->getStopProcessEvent();
 	_threadID = 0;
-	_stopProcessEvent = 0;
 }
 
 Thread::~Thread(){
