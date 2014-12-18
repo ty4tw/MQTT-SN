@@ -52,6 +52,8 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <signal.h>
+#include "sem_timedwait.h"
+
 
 using namespace std;
 extern const char* theCmdlineParameter;
@@ -477,11 +479,11 @@ void Mutex::unlock(void){
  =====================================*/
 
 Semaphore::Semaphore(){
-	Semaphore(0);
-}
-
-Semaphore::Semaphore(unsigned int val){
-	sem_init(&_sem, 0, val);
+#ifdef __APPLE__
+	_sem = dispatch_semaphore_create(0);
+#else
+	sem_init(&_sem, 0, 0);
+#endif
 	_name = 0;
 	_psem = 0;
 }
@@ -502,7 +504,11 @@ Semaphore::~Semaphore(){
 		sem_unlink(_name);
 		free((void*)_name);
 	}else{
+#ifdef __APPLE__
+		dispatch_release(_sem);
+#else
 		sem_destroy(&_sem);
+#endif
 	}
 }
 
@@ -514,10 +520,14 @@ void Semaphore::post(void){
 			sem_post(_psem);
 		}
 	}else{
+#ifdef __APPLE__
+		dispatch_semaphore_signal(_sem);
+#else
 		sem_getvalue(&_sem,&val);
 		if(val <= 0){
 			sem_post(&_sem);
 		}
+#endif
 	}
 }
 
@@ -525,11 +535,22 @@ void Semaphore::wait(void){
 	if(_psem){
 		sem_wait(_psem);
 	}else{
+#ifdef __APPLE__
+		dispatch_semaphore_wait(_sem, DISPATCH_TIME_FOREVER);
+#else
 		sem_wait(&_sem);
+#endif
 	}
 }
 
 void Semaphore::timedwait(uint16_t millsec){
+#ifdef __APPLE__
+	if(_psem){
+		sem_timedwait_mach(_psem, millsec);
+	}else{
+		dispatch_semaphore_wait(_sem, dispatch_time(DISPATCH_TIME_NOW, millsec * NSEC_PER_MSEC));
+	}
+#else
 	struct timespec ts;
 	clock_gettime(CLOCK_REALTIME, &ts);
 	ts.tv_sec += millsec / 1000;
@@ -539,6 +560,7 @@ void Semaphore::timedwait(uint16_t millsec){
 	}else{
 		sem_timedwait(&_sem, &ts);
 	}
+#endif
 }
 
 /*=========================================
@@ -811,4 +833,3 @@ void Timer::stop(){
   _startTime.tv_sec = 0;
   _millis = 0;
 }
-

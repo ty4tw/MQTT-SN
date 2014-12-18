@@ -72,6 +72,10 @@
 
 #define ERRNO_SYS_01  1   // Application Frame Error
 
+#ifdef __APPLE__
+#include <dispatch/dispatch.h>
+#endif
+
 using namespace std;
 
 /*=================================
@@ -104,7 +108,6 @@ private:
 class Semaphore{
 public:
 	Semaphore();
-	Semaphore(unsigned int val);
 	Semaphore(const char* name, unsigned int val);
 	~Semaphore();
 	void post(void);
@@ -113,7 +116,13 @@ public:
 
 private:
 	sem_t* _psem;
+
+#ifdef __APPLE__
+	dispatch_semaphore_t _sem;
+#else
 	sem_t  _sem;
+#endif
+
 	char*  _name;
 };
 

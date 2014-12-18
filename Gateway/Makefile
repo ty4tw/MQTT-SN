@@ -9,6 +9,7 @@ $(SRCDIR)/ClientRecvTask.cpp \
 $(SRCDIR)/ClientSendTask.cpp \
 $(SRCDIR)/GatewayControlTask.cpp \
 $(SRCDIR)/GatewayResourcesProvider.cpp \
+$(SUBDIR)/sem_timedwait.cpp \
 $(SUBDIR)/ProcessFramework.cpp \
 $(SUBDIR)/Messages.cpp \
 $(SUBDIR)/TCPStack.cpp \
