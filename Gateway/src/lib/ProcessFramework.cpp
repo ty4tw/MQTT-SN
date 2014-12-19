@@ -213,7 +213,6 @@ int Process::getParam(const char* parameter, char* value){
 
 	if ((fp = fopen(TOMYFRAME_CONFIG_FILE, "r")) == NULL) {
 		LOGWRITE("No config file:[%s]\n", TOMYFRAME_CONFIG_FILE);
-		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "No config file.");
 		return -1;
 	}
 
@@ -245,7 +244,7 @@ int Process::getParam(const char* parameter, char* value){
 		}
 	}
 	fclose(fp);
-	return -1;
+	return -2;
 }
 
 
@@ -336,6 +335,9 @@ int MultiTaskProcess::getParam(const char* parameter, char* value){
 	_mutex.lock();
 	int rc = Process::getParam(parameter, value);
 	_mutex.unlock();
+	if(rc == -1){
+		THROW_EXCEPTION(ExFatal, ERRNO_SYS_01, "No config file.");
+	}
 	return rc;
 }
 /*=====================================
