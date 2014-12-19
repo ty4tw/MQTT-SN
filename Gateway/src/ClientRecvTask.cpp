@@ -67,7 +67,11 @@ void ClientRecvTask::run(){
 
 #ifdef NETWORK_XBEE
 
-	config.baudrate = B57600;
+	if(_res->getParam("BaudRate",param) == 0){
+		config.baudrate = strtol(param,  (char **)NULL, 16);
+	} else {
+		config.baudrate = B57600;
+	}
 	config.flag = O_RDONLY;
 	if(_res->getParam("SerialDevice",param) == 0){
 		config.device = strdup(param);
