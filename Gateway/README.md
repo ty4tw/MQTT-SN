@@ -111,7 +111,7 @@ Raspberry Pi SD card img file
         $ ssh xxx.xxx.xxx.xxx -l gw -p 22022  
     5) Download latest version from github & compile  as follows  
     6) $ rm -rf MQTT-SN    
-    7) $ git clone https://github.com/ty4tw/MQTT-SN.git    
+    7) $ git clone https://github.com/ty4tw/MQTT-SN.git     
     8) $ cd MQTT-SN/Gateway/src      
     9) $ make CXXFLAGS=-DRASPBERRY_PI 
        or 
