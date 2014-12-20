@@ -83,8 +83,7 @@ void ClientSendTask::run(){
 			config.baudrate = B115200;
 			break;
 		default:
-			printf("Invalid baud rate!\n");
-			exit(-1);
+			THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "Invalid baud rate!");  // ABORT
 		}
 	}else{
 		config.baudrate = B57600;

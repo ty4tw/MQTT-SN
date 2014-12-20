@@ -113,7 +113,7 @@ void GatewayControlTask::run(){
 
 	advertiseTimer.start(keepAlive * 1000UL);
 
-	LOGWRITE("%s TomyGateway started %s %s\n", currentDateTime(),GATEWAY_NETWORK,GATEWAY_VERSION);
+	LOGWRITE("%s TomyGateway started. %s %s\n", currentDateTime(),GATEWAY_NETWORK,GATEWAY_VERSION);
 
 
 	while(true){

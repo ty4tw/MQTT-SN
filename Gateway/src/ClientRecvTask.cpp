@@ -88,8 +88,7 @@ void ClientRecvTask::run(){
 			config.baudrate = B115200;
 			break;
 		default:
-			printf("Invalid baudrate!\n");
-			exit(-1);
+			THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "Invalid baud rate!");  // ABORT
 		}
 	}else{
 		config.baudrate = B57600;
@@ -126,7 +125,6 @@ void ClientRecvTask::run(){
 #ifdef NETWORK_XXXXX
 	_network = _res->getNetwork();
 #endif
-
 	if(_network->initialize(config) < 0){
 		THROW_EXCEPTION(ExFatal, ERRNO_APL_01, "can't open the client port.");  // ABORT
 	}
