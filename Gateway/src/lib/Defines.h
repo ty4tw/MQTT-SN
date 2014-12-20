@@ -40,14 +40,15 @@
 
 #if ! defined(NETWORK_UDP) && ! defined (NETWORK_XXXXX)
 #define NETWORK_XBEE
+#define GATEWAY_NETWORK  "Network is XBee."
 #endif
 
-#if ! defined(NETWORK_XBEE) && ! defined (NETWORK_XXXXX)
-#define NETWORK_UDP
+#ifdef NETWORK_UDP
+#define GATEWAY_NETWORK  "Network is UDP."
 #endif
 
-#if ! defined(NETWORK_XBEE) && ! defined (NETWORK_UDP)
-#define NETWORK_XXXXX
+#ifdef NETWORK_XXXXX
+#define GATEWAY_NETWORK  "Network is XXXXX."
 #endif
 /*=================================
  *    CPU TYPE

@@ -36,7 +36,7 @@
 #ifndef GATEWAYDEFINES_H_
 #define GATEWAYDEFINES_H_
 
-#define GATEWAY_VERSION "(Ver 1.1.5)"
+#define GATEWAY_VERSION "(Ver 1.1.6)"
 
 #define BROKER      "Broker"
 #define GREEN_BROKER "\x1b[0m\x1b[32mBroker\x1b[0m\x1b[37m"
@@ -89,7 +89,6 @@
 /*==========================================================
  *           Light Indicators
  ===========================================================*/
-//#define RASPBERRY_PI
 
 #define LIGHT_INDICATOR_GREEN   4    // RPi connector 16
 #define LIGHT_INDICATOR_RED     5    // RPi connector 18
