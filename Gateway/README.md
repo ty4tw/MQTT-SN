@@ -112,13 +112,12 @@ Raspberry Pi SD card img file
     5) Download latest version from github & compile  as follows  
     6) $ rm -rf MQTT-SN    
     7) $ git clone https://github.com/ty4tw/MQTT-SN.git    
-    8) $ cd MQTT-SN/Gateway/src    
-    9) $ vi GatewayDefines.h        uncomment line97    
-    10) $ make CXXFLAGS=-DRASPBERRY_PI    
-    11) $ make install    
-    12) $ cd    
-    13) $ mv TomyGatetway  TomyGatewayXBee   
-    14)  reboot
+    8) $ cd MQTT-SN/Gateway/src      
+    9) $ make CXXFLAGS=-DRASPBERRY_PI 
+       or 
+       $ make CXXFLAGS=-DRASPBERRY_PI DEFS=-DNETWORK_UDP     
+    10) $ make install    
+    11)  reboot
               
 
     
