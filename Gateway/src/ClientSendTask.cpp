@@ -43,6 +43,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 
 
 ClientSendTask::ClientSendTask(GatewayResourcesProvider* res){
@@ -56,14 +57,35 @@ ClientSendTask::~ClientSendTask(){
 
 
 void ClientSendTask::run(){
-
-#ifdef NETWORK_XBEE
 	NETWORK_CONFIG config;
+#ifdef NETWORK_XBEE
+
 	char param[TOMYFRAME_PARAM_MAX];
 	bool secure = true;
 
 	if(_res->getParam("BaudRate",param) == 0){
-		config.baudrate = strtol(param, (char **)NULL, 16);
+
+		int val = atoi(param);
+		switch(val){
+		case 9600:
+			config.baudrate = B9600;
+			break;
+		case 19200:
+			config.baudrate =B19200;
+			break;
+		case 38400:
+			config.baudrate =B38400;
+			break;
+		case 57600:
+			config.baudrate =B57600;
+			break;
+		case 115200:
+			config.baudrate = B115200;
+			break;
+		default:
+			printf("Invalid baud rate!\n");
+			exit(-1);
+		}
 	}else{
 		config.baudrate = B57600;
 	}

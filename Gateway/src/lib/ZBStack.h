@@ -271,7 +271,7 @@ public:
 			uint8_t* payload, uint16_t payloadLength);
 	void broadcast(uint8_t* payloadLength, uint16_t bodyLenght);
 	bool getResponse(NWResponse* response);
-	int initialize(XBeeConfig  config);
+	int initialize(NETWORK_CONFIG  config);
 
 private:
 	NWRequest   _txRequest;

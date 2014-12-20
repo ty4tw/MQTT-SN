@@ -46,6 +46,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 
 extern char* currentDateTime();
 
@@ -68,7 +69,28 @@ void ClientRecvTask::run(){
 #ifdef NETWORK_XBEE
 
 	if(_res->getParam("BaudRate",param) == 0){
-		config.baudrate = strtol(param, (char **)NULL, 16);
+
+		int val = atoi(param);
+		switch(val){
+		case 9600:
+			config.baudrate = B9600;
+			break;
+		case 19200:
+			config.baudrate =B19200;
+			break;
+		case 38400:
+			config.baudrate =B38400;
+			break;
+		case 57600:
+			config.baudrate =B57600;
+			break;
+		case 115200:
+			config.baudrate = B115200;
+			break;
+		default:
+			printf("Invalid baudrate!\n");
+			exit(-1);
+		}
 	}else{
 		config.baudrate = B57600;
 	}

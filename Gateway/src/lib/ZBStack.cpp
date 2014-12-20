@@ -588,7 +588,7 @@ bool Network::getResponse(NWResponse* response){
 	return receiveResponse(response);
 }
 
-int Network::initialize(XBeeConfig config){
+int Network::initialize(NETWORK_CONFIG config){
 	return XBee::initialize(config);
 }
 

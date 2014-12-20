@@ -41,7 +41,7 @@
 #include <string.h>
 #include <string>
 
-#ifdef RASPBERRY_LIGHT_INDICATOR
+#ifdef RASPBERRY_PI
 #include <wiringPi.h>
 #endif
 
@@ -700,7 +700,7 @@ LightIndicator::~LightIndicator(){
 }
 
 void LightIndicator::init(){
-#ifdef RASPBERRY_LIGHT_INDICATOR
+#ifdef RASPBERRY_PI
 	if(wiringPiSetup() != -1){
 		pinMode(LIGHT_INDICATOR_GREEN, OUTPUT);
 		pinMode(LIGHT_INDICATOR_RED, OUTPUT);
@@ -747,7 +747,7 @@ void LightIndicator::blueLight(bool on){
 }
 
 void LightIndicator::lit(int gpioNo, int onoff){
-#ifdef RASPBERRY_LIGHT_INDICATOR
+#ifdef RASPBERRY_PI
 	if(_gpioAvailable){
 		digitalWrite(gpioNo,onoff);
 	}

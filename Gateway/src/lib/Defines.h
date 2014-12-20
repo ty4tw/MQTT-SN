@@ -37,10 +37,18 @@
 /*=================================
  *    Network  Selection
  =================================*/
-#define NETWORK_XBEE
-//#define NETWORK_UDP
-//#define NETWORK_XXXXX
 
+#if ! defined(NETWORK_UDP) && ! defined (NETWORK_XXXXX)
+#define NETWORK_XBEE
+#endif
+
+#if ! defined(NETWORK_XBEE) && ! defined (NETWORK_XXXXX)
+#define NETWORK_UDP
+#endif
+
+#if ! defined(NETWORK_XBEE) && ! defined (NETWORK_UDP)
+#define NETWORK_XXXXX
+#endif
 /*=================================
  *    CPU TYPE
  ==================================*/

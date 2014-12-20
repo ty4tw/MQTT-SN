@@ -36,7 +36,7 @@
 #ifndef GATEWAYDEFINES_H_
 #define GATEWAYDEFINES_H_
 
-#define GATEWAY_VERSION "(Ver 1.1.3)"
+#define GATEWAY_VERSION "(Ver 1.1.5)"
 
 #define BROKER      "Broker"
 #define GREEN_BROKER "\x1b[0m\x1b[32mBroker\x1b[0m\x1b[37m"
@@ -88,13 +88,8 @@
 
 /*==========================================================
  *           Light Indicators
- *
- *  Change Makefile line25 and 26
- *   Line25 comment out  #LDADD := -lpthread -lrt
- *   Line26 uncomment    LDADD := -lpthread -lrt -lwiringPi
- *
  ===========================================================*/
-//#define RASPBERRY_LIGHT_INDICATOR
+//#define RASPBERRY_PI
 
 #define LIGHT_INDICATOR_GREEN   4    // RPi connector 16
 #define LIGHT_INDICATOR_RED     5    // RPi connector 18

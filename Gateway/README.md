@@ -33,8 +33,11 @@ Usage
 *  or two XBee S1 (Digimesh, one for gateway and another for client)    
 
 ####2) How to Build
-
-    $ make
+    for XBee DigiMesh
+    $ make    
+           
+    for UDP
+    $ make DEFS=-DNETWORK_UDP     
     
   Makefile is in Gateway directory.  
   TomyGateway (Executable) is created in Build directory.
@@ -53,6 +56,7 @@ Usage
     #LoginID=    
     #Password=    
     SerialDevice=/dev/ttyUSB0     
+    BaudRate=57600
     BroadcastIP=225.1.1.1     
     GatewayPortNo=2000      
     BroadcastPortNo=1883     
@@ -87,13 +91,6 @@ Gateway configurations
   lib/Defines.h
 
     /*=================================
-     *    Network  Selection
-     =================================*/
-    //#define NETWORK_XBEE               <--- comment out for UDP
-    #define NETWORK_UDP                  <--- comment out for XBee 
-    //#define NETWORK_XXXXX    
-
-    /*=================================
      *    CPU TYPE
      ==================================*/
     #define CPU_LITTLEENDIANN
@@ -117,7 +114,7 @@ Raspberry Pi SD card img file
     7) $ git clone https://github.com/ty4tw/MQTT-SN.git    
     8) $ cd MQTT-SN/Gateway/src    
     9) $ vi GatewayDefines.h        uncomment line97    
-    10) $ make    
+    10) $ make CPPFLAG=-DRASPBERRY_PI    
     11) $ make install    
     12) $ cd    
     13) $ mv TomyGatetway  TomyGatewayXBee   
