@@ -176,7 +176,11 @@ void BrokerRecvTask::recvAndFireEvent(ClientNode* clnode){
 
 		}else if((*packet & 0xf0) == MQTT_TYPE_PUBLISH){
 			MQTTPublish* publish = new MQTTPublish();
-			publish->deserialize(packet);
+			if(!publish->deserialize(packet)){
+				clnode->disconnected();
+				clnode->getStack()->disconnect();
+				LOGWRITE("%s ill-formed UTF-8\n",currentDateTime());
+			}
 			publish->serialize(sbuff);
 			LOGWRITE(GREEN_FORMAT2, currentDateTime(), "PUBLISH", LEFTARROW, BROKER, msgPrint(sbuff, publish));
 

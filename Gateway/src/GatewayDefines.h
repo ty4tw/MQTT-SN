@@ -36,7 +36,7 @@
 #ifndef GATEWAYDEFINES_H_
 #define GATEWAYDEFINES_H_
 
-#define GATEWAY_VERSION "(Ver 1.1.6)"
+#define GATEWAY_VERSION "(Ver 1.1.7)"
 
 #define BROKER      "Broker"
 #define GREEN_BROKER "\x1b[0m\x1b[32mBroker\x1b[0m\x1b[37m"
@@ -44,8 +44,6 @@
 #define CLIENT      "Client"
 #define LEFTARROW   "<---"
 #define RIGHTARROW  "--->"
-
-#define SEND_COMPLETE  " \x1b[0m\x1b[32m[Tx completed]\x1b[0m\x1b[37m\n"
 
 #define FORMAT      "%s   %-14s%-8s%-44s%s\n"
 #define FORMAT1     "%s   %-14s%-8s%-26s%s\n"

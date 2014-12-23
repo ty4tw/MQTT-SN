@@ -38,7 +38,6 @@
 #include "UDPStack.h"
 #include "ProcessFramework.h"
 #include "Messages.h"
-//#include "ErrorMessage.h"
 
 #include <string>
 #include <string.h>
@@ -52,6 +51,33 @@ extern uint8_t* mqcalloc(uint8_t length);
 extern void utfSerialize(uint8_t* pos, string str);
 
 using namespace tomyGateway;
+
+bool isUtf8Valid(string& string)
+{
+    int c,i,ix,n,j;
+    for (i=0, ix=string.length(); i < ix; i++)
+    {
+        c = (uint8_t) string[i];
+        if (0x00 <= c && c <= 0x7f){
+        	n=0; // 0bbbbbbb
+        }else if ((c & 0xE0) == 0xC0){
+        	n=1; // 110bbbbb
+        }else if ( c==0xed && i<(ix-1) && ((uint8_t)string[i+1] & 0xa0)==0xa0){
+        	return false; //U+D800 to U+DFFF
+        }else if ((c & 0xF0) == 0xE0){
+        	n=2; // 1110bbbb
+        }else if ((c & 0xF8) == 0xF0){
+        	n=3; // 11110bbb
+        }else{
+        	return false;
+        }
+        for (j=0; j<n && i<ix; j++) {
+            if ((++i == ix) || (( (uint8_t)string[i] & 0xC0) != 0x80))
+                return false;
+        }
+    }
+    return true;
+}
 
 
 /*=====================================
@@ -1735,6 +1761,9 @@ bool MQTTPublish::deserialize(uint8_t* buf){
 
 	buf += 1 + remLen.getSize();
 	_topic = string((char*)buf + 2, getUint16(buf));
+	if(!isUtf8Valid(_topic)){
+		return false;
+	}
 
 	buf += _topic.size() + 2;
 	if(getQos()){
@@ -1747,5 +1776,4 @@ bool MQTTPublish::deserialize(uint8_t* buf){
 	memcpy(_payload, buf, _len);
 	return true;
 }
-
 
