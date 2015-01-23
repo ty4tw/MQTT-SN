@@ -29,6 +29,7 @@ Usage
 ####1) Minimum requirements
 *  Linux  ( Windows can not execute this program.)    
 *  pthread, rt liblaries to be linked.    
+*  wiringPi for Raspberry Pi (http://wiringpi.com/download-and-install/)
 *  In case of XBee, Three XBee S2 (one coordinator, one gateway and one client.)  
 *  or two XBee S1 (Digimesh, one for gateway and another for client)    
 
