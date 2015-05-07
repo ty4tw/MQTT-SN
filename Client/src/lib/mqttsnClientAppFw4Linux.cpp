@@ -202,8 +202,13 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 	}
 
 #ifdef NETWORK_XBEE
-	theAppConfig.netCfg.baudrate = br;
-	theAppConfig.netCfg.device = strdup(dev);
+    if(br && dev){
+        theAppConfig.netCfg.baudrate = br;
+        theAppConfig.netCfg.device = strdup(dev);
+    }else{
+        printf("argument error\n");
+        exit(1);
+    }
 #endif
 #ifdef NETWORK_UDP
 	if(gPortNo && ipAddr[0] && uPortNo){
