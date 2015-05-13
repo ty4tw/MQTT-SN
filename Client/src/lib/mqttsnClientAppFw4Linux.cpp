@@ -178,6 +178,9 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 			case 57600:
 				br =B57600;
 				break;
+			case 115200:
+				br = B115200;
+				break;
 			default:
 				printf("Invalid baudrate!\n");
 				exit(-1);
@@ -202,9 +205,15 @@ void MqttsnClientApplication::initialize(int argc, char** argv){
 	}
 
 #ifdef NETWORK_XBEE
-	theAppConfig.netCfg.baudrate = br;
-	theAppConfig.netCfg.device = strdup(dev);
+    if(br && dev){
+        theAppConfig.netCfg.baudrate = br;
+　       theAppConfig.netCfg.device = strdup(dev);
+    }else{
+        printf("argument error\n");
+        exit(1);
+    }
 #endif
+
 #ifdef NETWORK_UDP
 	if(gPortNo && ipAddr[0] && uPortNo){
 		theAppConfig.netCfg.gPortNo = gPortNo;
