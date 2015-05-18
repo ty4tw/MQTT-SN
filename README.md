@@ -1,6 +1,7 @@
-AsyncMQTT-SN is available.
+Not support this any more. AsyncMQTT-SN is available.
 ======
-     
+*  Not support this any more.
+
 MQTT-SN  over UDP and XBee 
 ======
 *  MQTT-SN Gateway over XBee or UDP (running on linux)    
