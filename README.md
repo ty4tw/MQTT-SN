@@ -1,4 +1,4 @@
-[Async]: https://github.com/ty4tw/AsyncMQTT-SN "AsyncMQTT-SN is available."  
+AsyncMQTT-SN is available. (https://github.com/ty4tw/AsyncMQTT-SN)
 ======
 *  Not support this any more.
 
