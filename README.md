@@ -1,6 +1,6 @@
-AsyncMQTT-SN is available. (https://github.com/ty4tw/AsyncMQTT-SN)
+AsyncMQTT-SN is available. 
 ======
-*  Not support this any more.
+*  https://github.com/ty4tw/AsyncMQTT-SN
 
 MQTT-SN  over UDP and XBee 
 ======
