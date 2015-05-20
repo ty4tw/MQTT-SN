@@ -1,13 +1,9 @@
-AsyncMQTT-SN is available. 
-======
-*  https://github.com/ty4tw/AsyncMQTT-SN
-
 MQTT-SN  over UDP and XBee 
 ======
 *  MQTT-SN Gateway over XBee or UDP (running on linux)    
 *  MQTT-SN Client over XBee (running on linux, Arduino and mbed)     
 *  MQTT-SN Client over UDP  (running on linux and Arduino)    
- 
+*  AsyncMQTT-SN is available.  https://github.com/ty4tw/AsyncMQTT-SN
   
   You can add your own network stack easily. Templates XXXXXStack.cpp and  XXXXXStack.h are included in src/lib directory.    
 
