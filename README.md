@@ -1,6 +1,6 @@
 MQTT-SN  over UDP and XBee 
 ======
-***Gateway has been contributed to paho.***
+***Updated Gateway has been contributed to paho.***
 https://github.com/eclipse/paho.mqtt-sn.embedded-c/tree/gateway
 
 *  MQTT-SN Gateway over XBee or UDP (running on linux)    
