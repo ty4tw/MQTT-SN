@@ -1,6 +1,7 @@
 MQTT-SN  over UDP and XBee 
 ======
-***Updated Gateway has been contributed to paho.***
+***Updated Gateway has been contributed to paho.***       
+***Latest Gateway can connect to AWS IoT.***            
 https://github.com/eclipse/paho.mqtt-sn.embedded-c/tree/gateway
 
 *  MQTT-SN Gateway over XBee or UDP (running on linux)    
