@@ -119,7 +119,7 @@
 #define MQTTSN_FLAG_WILL    0x08
 #define MQTTSN_FLAG_CLEAN   0x04
 
-#define MQTTSN_PROTOCOL_ID  0x03
+#define MQTTSN_PROTOCOL_ID  0x01
 #define MQTTSN_HEADER_SIZE  2
 
 #define MQTTSN_RC_ACCEPTED                  0x00
